@@ -10,7 +10,7 @@
 
 **A fast, configurable statusline for Google Antigravity's CLI (`agy`).**
 
-See your model, Gemini 5h/7d quotas, context window, git branch and more at a glance. Pick widgets, themes and layout from an interactive editor. One command to install, no dependencies.
+See your model, Gemini 5h/7d, Claude/GPT and Argon quotas, context window, git branch and more at a glance. Pick widgets, themes and layout from an interactive editor. One command to install, no dependencies.
 
 <p align="center">
   <img src="assets/screenshots/pills-dark.png" alt="agy-powerline Pills layout with the dark-ocean theme: agent state, model, plan, project and git; context; 5h and 7d quotas with resets" width="850">

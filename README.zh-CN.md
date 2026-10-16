@@ -12,7 +12,7 @@
 
 **为 Google Antigravity CLI（`agy`）打造的快速、可配置的状态栏。**
 
-一眼看到当前模型、Gemini 5h/7d 配额、上下文窗口、git 分支等信息。在交互式编辑器中挑选组件、主题和布局。一条命令即可安装，零依赖。
+一眼看到当前模型、Gemini 5h/7d、Claude/GPT 和 Argon 配额、上下文窗口、git 分支等信息。在交互式编辑器中挑选组件、主题和布局。一条命令即可安装，零依赖。
 
 <p align="center">
   <img src="assets/screenshots/pills-dark.png" alt="agy-powerline 的 Pills 布局，dark-ocean 主题：代理状态、模型、套餐、项目和 git；上下文；5h 和 7d 配额及重置时间" width="850">
