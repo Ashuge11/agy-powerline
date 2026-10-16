@@ -5,8 +5,10 @@
 [![CI](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml/badge.svg)](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/npm/v/agy-powerline.svg)](https://www.npmjs.com/package/agy-powerline)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-informational.svg)](https://nodejs.org/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20WSL-lightgrey.svg)](docs/install.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#プライバシーとセキュリティ)
+[![Mentioned in Awesome Gemini CLI](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/Piebald-AI/awesome-gemini-cli)
 
 > この文書は英語版 [README](README.md) の翻訳で、最新の内容に追いついていない場合があります。内容が異なる場合は英語版が優先されます。詳しいドキュメント（[`docs/`](docs/)）は英語版のみです。
 
