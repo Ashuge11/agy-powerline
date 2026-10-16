@@ -30,6 +30,14 @@ agy                           # Antigravity を起動
 
 `init` は何かを置き換える前に確認し、先に Antigravity の `settings.json` をバックアップします。`init` の後に `agy` を一度再起動してください。詳細：[`init` が行うこと](docs/install.md)。
 
+agy にインストールしてもらうこともできます。次の文を `agy` のセッションに貼り付けてください。
+
+```text
+Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then tell me to restart agy.
+```
+
+`--yes` は agy が答えられない確認をスキップし、`settings.json` をバックアップしたうえで既存の `statusLine` を置き換えます。
+
 Nerd Font のないターミナルでは、ASCII モードをオンにしてください（`configure` で `i`）。
 
 ## カスタマイズ

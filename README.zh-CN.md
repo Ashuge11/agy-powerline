@@ -30,6 +30,14 @@ agy                           # 启动 Antigravity
 
 `init` 在替换任何内容之前都会先询问，并会先备份 Antigravity 的 `settings.json`。运行 `init` 后需重启一次 `agy`。详情：[`init` 做了什么](docs/install.md)。
 
+也可以让 agy 帮你安装：把下面这段话粘贴到 `agy` 会话中。
+
+```text
+Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then tell me to restart agy.
+```
+
+`--yes` 会跳过 agy 无法回答的确认提示，并在备份 `settings.json` 后替换已有的 `statusLine`。
+
 如果终端没有 Nerd Font，可以开启 ASCII 模式（在 `configure` 中按 `i`）。
 
 ## 自定义

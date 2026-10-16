@@ -28,6 +28,14 @@ agy                           # start Antigravity
 
 `init` asks before replacing anything and backs up Antigravity's `settings.json` first. Restart `agy` once after `init`. Details: [what `init` does](docs/install.md).
 
+Or let agy install it: paste this into an `agy` session.
+
+```text
+Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then tell me to restart agy.
+```
+
+`--yes` skips the prompts, which agy can't answer, and replaces any existing `statusLine` after backing up `settings.json`.
+
 For a Nerd Font–free terminal, turn on ASCII mode (`i` in `configure`).
 
 ## Customize
