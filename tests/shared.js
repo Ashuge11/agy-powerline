@@ -15,6 +15,7 @@ registerSuite("configurator screens", "./shared/tui.test");
 registerSuite("git", "./shared/git.test");
 registerSuite("problem log", "./shared/log.test");
 registerSuite("cli", "./shared/cli.test");
+registerSuite("readme", "./shared/readme.test");
 registerSuite("robustness", "./shared/robustness.test");
 registerSuite("security", "./shared/security.test");
 registerSuite("install safety", "./shared/install-safety.test");
