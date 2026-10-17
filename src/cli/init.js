@@ -227,7 +227,7 @@ async function updateAgySettings(command, { exists, settings }, { yes, rl, stack
     statusLine.padding = settings.statusLine.padding;
   }
 
-  writeJsonSafely(AGY_SETTINGS, { ...settings, statusLine });
+  const originalBackup = writeJsonSafely(AGY_SETTINGS, { ...settings, statusLine });
 
   console.log(`${DIM}  ${exists ? "updated" : "created"} ${AGY_SETTINGS}${RESET}`);
   // init means "show the bar", so a statusLine switched off with enabled: false
@@ -237,6 +237,11 @@ async function updateAgySettings(command, { exists, settings }, { yes, rl, stack
   }
   if (exists) {
     console.log(`${DIM}  backup  ${settingsBackupPath(AGY_SETTINGS)}${RESET}`);
+  }
+  if (originalBackup) {
+    console.log(
+      `${DIM}  original  ${originalBackup} (kept as it was before agy-powerline)${RESET}`
+    );
   }
 
   return statusLine;

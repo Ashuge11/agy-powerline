@@ -43,6 +43,14 @@ function writeSettings(box, text) {
   fs.writeFileSync(box.settingsPath, text, "utf8");
 }
 
+function readText(file) {
+  try {
+    return fs.readFileSync(file, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 function readJson(file) {
   try {
     return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -109,6 +117,120 @@ function testInitPreservesSettingsAndBacksUp() {
       "uninstall removes only statusLine and keeps other settings",
       uninstall.code === 0 && after?.theme === "dark" && after?.mcpServers?.x && !after?.statusLine,
       `exit ${uninstall.code}`
+    );
+  } finally {
+    box.cleanup();
+  }
+}
+
+// The first backup keeps the user's file as it was before agy-powerline;
+// later writes only replace the latest backup.
+function testOriginalBackupIsKept() {
+  const box = sandbox("first-backup");
+  const original = JSON.stringify({ theme: "dark" }, null, 2);
+
+  try {
+    writeSettings(box, original);
+    const first = runCli(["init", "--yes"], { env: box.env });
+    const originalBackup = `${box.settingsPath}.agy-powerline.original.bak`;
+    record(
+      "the first init keeps the untouched settings.json as the original backup",
+      first.code === 0 &&
+        readText(originalBackup) === original &&
+        /^ +original +/m.test(stripAnsi(first.stdout)),
+      `exit ${first.code}`
+    );
+
+    const edited = { ...readJson(box.settingsPath), editor: "vim" };
+    writeSettings(box, JSON.stringify(edited, null, 2));
+    const second = runCli(["init", "--yes"], { env: box.env });
+    record(
+      "a later init replaces the latest backup but never the original one",
+      second.code === 0 &&
+        readText(originalBackup) === original &&
+        readJson(`${box.settingsPath}.agy-powerline.bak`)?.editor === "vim" &&
+        !/^ +original +/m.test(stripAnsi(second.stdout)),
+      `exit ${second.code}`
+    );
+  } finally {
+    box.cleanup();
+  }
+}
+
+// Some Windows setups refuse to create symlinks without Developer Mode.
+function symlinkOrSkip(target, link, name) {
+  try {
+    fs.mkdirSync(path.dirname(link), { recursive: true });
+    fs.symlinkSync(target, link, "file");
+    return true;
+  } catch (err) {
+    record(`${name} skipped: this system can't create symlinks (${err.code})`, true);
+    return false;
+  }
+}
+
+// Dotfile managers link settings.json and the config into place: writes go
+// through the link, which stays a link.
+function testSymlinkedFilesStayLinked() {
+  const box = sandbox("symlink");
+
+  try {
+    const dotfiles = path.join(box.root, "dotfiles");
+    fs.mkdirSync(dotfiles, { recursive: true });
+    const realSettings = path.join(dotfiles, "settings.json");
+    fs.writeFileSync(realSettings, JSON.stringify({ theme: "dark" }, null, 2), "utf8");
+    const name = "a symlinked settings.json";
+    if (!symlinkOrSkip(realSettings, box.settingsPath, name)) {
+      return;
+    }
+
+    const init = runCli(["init", "--yes"], { env: box.env });
+    record(
+      "init writes through a symlinked settings.json and leaves the link in place",
+      init.code === 0 &&
+        fs.lstatSync(box.settingsPath).isSymbolicLink() &&
+        readJson(realSettings)?.statusLine?.type === "command" &&
+        readJson(realSettings)?.theme === "dark",
+      `exit ${init.code}`
+    );
+
+    const uninstall = runCli(["uninstall", "--yes"], { env: box.env });
+    record(
+      "uninstall writes through a symlinked settings.json and leaves the link in place",
+      uninstall.code === 0 &&
+        fs.lstatSync(box.settingsPath).isSymbolicLink() &&
+        readJson(realSettings)?.theme === "dark" &&
+        readJson(realSettings)?.statusLine === undefined,
+      `exit ${uninstall.code}`
+    );
+
+    // Only statusLine left: a plain file would be deleted, a linked one is emptied.
+    fs.writeFileSync(realSettings, "{}\n", "utf8");
+    runCli(["init", "--yes"], { env: box.env });
+    const emptied = runCli(["uninstall", "--yes"], { env: box.env });
+    record(
+      "uninstall empties a symlinked settings.json instead of deleting the link",
+      emptied.code === 0 &&
+        fs.lstatSync(box.settingsPath).isSymbolicLink() &&
+        JSON.stringify(readJson(realSettings)) === "{}",
+      `exit ${emptied.code}`
+    );
+
+    // The same goes for the widget config.
+    const config = path.join(box.installDir, "statusline.config.json");
+    const realConfig = path.join(dotfiles, "statusline.config.json");
+    runCli(["init", "--yes"], { env: box.env });
+    fs.renameSync(config, realConfig);
+    if (!symlinkOrSkip(realConfig, config, "a symlinked statusline.config.json")) {
+      return;
+    }
+    const theme = runCli(["theme", "dark-ocean"], { env: box.env });
+    record(
+      "saving the config writes through a symlinked statusline.config.json",
+      theme.code === 0 &&
+        fs.lstatSync(config).isSymbolicLink() &&
+        readJson(realConfig)?.theme === "dark-ocean",
+      `exit ${theme.code}`
     );
   } finally {
     box.cleanup();
@@ -442,6 +564,8 @@ async function run() {
   testSaveConfigGuard();
   testInitRefusesUnparseableSettings();
   testInitPreservesSettingsAndBacksUp();
+  testOriginalBackupIsKept();
+  testSymlinkedFilesStayLinked();
   testUninstallDeleteIsScoped();
   testCliParser();
   testUntrustedTextIsStripped();

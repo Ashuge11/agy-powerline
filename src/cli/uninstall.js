@@ -66,8 +66,10 @@ function removeStatusLine(settings) {
   delete next.statusLine;
 
   if (Object.keys(next).length === 0) {
-    removeSettingsFile(AGY_SETTINGS);
-    return "settings file was empty, deleted";
+    // A symlinked settings.json is emptied rather than deleted (see paths.js).
+    return removeSettingsFile(AGY_SETTINGS) === "emptied"
+      ? "settings file was empty, emptied (it is a symlink)"
+      : "settings file was empty, deleted";
   }
 
   writeJsonSafely(AGY_SETTINGS, next);

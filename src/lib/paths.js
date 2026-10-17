@@ -238,15 +238,54 @@ function settingsBackupPath(file = AGY_SETTINGS) {
   return `${file}.agy-powerline.bak`;
 }
 
-// Backs up the current file, then writes atomically.
+function settingsOriginalBackupPath(file = AGY_SETTINGS) {
+  return `${file}.agy-powerline.original.bak`;
+}
+
+// Two copies before every change: the latest file, replaced each time, and
+// the file as it was before agy-powerline first changed it, written once and
+// never replaced, so running init again can't lose the user's own version.
+// Returns the original backup's path when this call created it.
+function backUpSettings(file) {
+  if (!fs.existsSync(file)) {
+    return null;
+  }
+  const original = settingsOriginalBackupPath(file);
+  const created = !fs.existsSync(original);
+  if (created) {
+    fs.copyFileSync(file, original);
+  }
+  fs.copyFileSync(file, settingsBackupPath(file));
+  return created ? original : null;
+}
+
+// Backs up the current file, then writes atomically. Returns what
+// backUpSettings() returns.
 function writeJsonSafely(file, data) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-
-  if (fs.existsSync(file)) {
-    fs.copyFileSync(file, settingsBackupPath(file));
-  }
-
+  const originalBackup = backUpSettings(file);
   writeFileAtomic(file, JSON.stringify(data, null, 2) + "\n");
+  return originalBackup;
+}
+
+// Dotfile managers (stow, chezmoi, yadm) link files such as settings.json
+// into place. A write goes through the link to the file it points to, so the
+// link stays a link and the user's real file gets the change; a rename onto
+// the link itself would replace it with a plain file.
+function writeTarget(file) {
+  try {
+    return fs.realpathSync(file);
+  } catch {
+    // Missing file, or a link whose target doesn't exist yet: follow it once.
+    try {
+      if (fs.lstatSync(file).isSymbolicLink()) {
+        return path.resolve(path.dirname(file), fs.readlinkSync(file));
+      }
+    } catch {
+      // Nothing at that path.
+    }
+    return file;
+  }
 }
 
 // Writes via temp file + rename so an interrupted write cannot leave a
@@ -254,9 +293,10 @@ function writeJsonSafely(file, data) {
 // mode the existing file had, so rewriting a file never widens who can read
 // it (the rename would otherwise reset it to the default).
 function writeFileAtomic(file, body, { mode } = {}) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.${process.pid}.tmp`;
-  const target = process.platform === "win32" ? undefined : (mode ?? existingMode(file));
+  const dest = writeTarget(file);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  const tmp = `${dest}.${process.pid}.tmp`;
+  const target = process.platform === "win32" ? undefined : (mode ?? existingMode(dest));
   fs.writeFileSync(tmp, body, { encoding: "utf8", mode: target ?? 0o666 });
   if (target !== undefined) {
     // The mode passed to writeFileSync is reduced by the umask; set it exactly.
@@ -270,10 +310,10 @@ function writeFileAtomic(file, body, { mode } = {}) {
   }
 
   try {
-    fs.renameSync(tmp, file);
+    fs.renameSync(tmp, dest);
   } catch {
     // Windows can refuse to replace a file another process holds open.
-    fs.writeFileSync(file, body, "utf8");
+    fs.writeFileSync(dest, body, "utf8");
     fs.rmSync(tmp, { force: true });
   }
 }
@@ -301,11 +341,20 @@ function restrictPrivateFiles(installDir) {
   }
 }
 
+// Removes a settings.json that would be left empty. A symlinked one is emptied
+// instead: deleting the link would break the user's dotfiles and leave the
+// real file unchanged. Returns "deleted", "emptied" or null (nothing there).
 function removeSettingsFile(file = AGY_SETTINGS) {
-  if (fs.existsSync(file)) {
-    fs.copyFileSync(file, settingsBackupPath(file));
-    fs.rmSync(file, { force: true });
+  if (!fs.existsSync(file)) {
+    return null;
   }
+  backUpSettings(file);
+  if (fs.lstatSync(file).isSymbolicLink()) {
+    writeFileAtomic(file, "{}\n");
+    return "emptied";
+  }
+  fs.rmSync(file, { force: true });
+  return "deleted";
 }
 
 // Antigravity runs the Windows launcher through `cmd /c`, which splits the
@@ -368,6 +417,7 @@ module.exports = {
   readAgySettings,
   readSettingsForUpdate,
   settingsBackupPath,
+  settingsOriginalBackupPath,
   writeJsonSafely,
   writeFileAtomic,
   removeSettingsFile,

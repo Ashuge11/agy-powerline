@@ -14,7 +14,7 @@ What `npx agy-powerline init` does, where files go, and how to set things up by 
 
 `init` copies the scripts to `~/.agy-powerline` and adds a `statusLine` entry to Antigravity's `settings.json`. It asks before overwriting existing scripts or another `statusLine`; pass `--yes` to skip the prompts (required without a TTY). Restart `agy` (or open a new session) after `init` so it reloads settings.
 
-`init` never loses your other settings. It refuses to touch a `settings.json` that is not plain JSON (comments, trailing commas) and tells you what to add by hand. Before every change it saves the previous file as `settings.json.agy-powerline.bak`.
+`init` never loses your other settings. It refuses to touch a `settings.json` that is not plain JSON (comments, trailing commas) and tells you what to add by hand. Before every change it saves the previous file as `settings.json.agy-powerline.bak`. The first time, it also keeps your untouched file as `settings.json.agy-powerline.original.bak`, which later runs never replace. A `settings.json` linked into place by a dotfile manager (stow, chezmoi, yadm) stays a link: the change goes into the file it points to.
 
 | OS      | Scripts                           | `statusLine.command` in settings                                     |
 | ------- | --------------------------------- | -------------------------------------------------------------------- |
