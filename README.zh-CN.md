@@ -155,6 +155,27 @@ npx agy-powerline doctor       # 检查一切是否为最新
 
 欢迎贡献。请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)（环境搭建、架构、添加组件或主题）和 [Code of Conduct](CODE_OF_CONDUCT.md)。Pull request 请提交到 `develop` 分支。在 [GitHub issues](https://github.com/wassim-azi/agy-powerline/issues) 中报告错误，或在 [Discussions](https://github.com/wassim-azi/agy-powerline/discussions) 中分享想法和反馈。
 
+感谢所有贡献者：
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4?s=80" width="80px;" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a><br /><a href="#design-yatharth2soni" title="Design">🎨</a> <a href="https://github.com/wassim-azi/agy-powerline/commits?author=yatharth2soni" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4?s=80" width="80px;" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a><br /><a href="https://github.com/wassim-azi/agy-powerline/commits?author=dannyward630" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+如果 agy-powerline 对你有用，点个 ⭐ 能帮助更多 agy 用户发现它。
+
 ## 许可证
 
 [MIT](LICENSE) © Wassim AZI

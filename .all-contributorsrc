@@ -1,0 +1,28 @@
+{
+  "projectName": "agy-powerline",
+  "projectOwner": "wassim-azi",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md", "README.zh-CN.md", "README.ja.md"],
+  "imageSize": 80,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "linkToUsage": false,
+  "contributors": [
+    {
+      "login": "yatharth2soni",
+      "name": "Yatharth Soni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/238868599?v=4",
+      "profile": "https://github.com/yatharth2soni",
+      "contributions": ["design", "code"]
+    },
+    {
+      "login": "dannyward630",
+      "name": "Danny Ward",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71604164?v=4",
+      "profile": "https://github.com/dannyward630",
+      "contributions": ["code"]
+    }
+  ]
+}

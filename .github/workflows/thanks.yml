@@ -1,0 +1,33 @@
+name: Thanks
+
+# Thanks an outside contributor once their pull request is merged.
+# pull_request_target so it can comment on fork PRs: it runs this file as it
+# is on develop and never checks out the PR's code. The login and number reach
+# the script through env, never inline, so a PR can't inject shell.
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] PR code is never checked out
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  thanks:
+    name: Thanks
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.user.login != github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          gh pr comment "$PR" --body "Merged, thanks @$AUTHOR! You'll be credited in the next release notes.
+
+          If agy-powerline is useful to you, a ⭐ helps other agy users find it."

@@ -76,6 +76,11 @@ function testFreshInstall() {
         /statusline\.(js|cmd)/.test(settings.statusLine.command || ""),
       missing || separate.join(", ") || res.stderr
     );
+    record(
+      "init ends with a link to the project page",
+      stripAnsi(res.stdout).includes("https://github.com/wassim-azi/agy-powerline"),
+      res.stdout
+    );
   });
 }
 

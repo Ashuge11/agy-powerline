@@ -155,6 +155,27 @@ npx agy-powerline doctor       # すべてが最新か確認
 
 コントリビュートを歓迎します。まず [CONTRIBUTING.md](CONTRIBUTING.md)（セットアップ、アーキテクチャ、ウィジェットやテーマの追加）と [Code of Conduct](CODE_OF_CONDUCT.md) をお読みください。プルリクエストは `develop` に向けて作成してください。バグは [GitHub issues](https://github.com/wassim-azi/agy-powerline/issues) で報告し、アイデアやフィードバックは [Discussions](https://github.com/wassim-azi/agy-powerline/discussions) で共有してください。
 
+コントリビューターの皆さんに感謝します：
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4?s=80" width="80px;" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a><br /><a href="#design-yatharth2soni" title="Design">🎨</a> <a href="https://github.com/wassim-azi/agy-powerline/commits?author=yatharth2soni" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4?s=80" width="80px;" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a><br /><a href="https://github.com/wassim-azi/agy-powerline/commits?author=dannyward630" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+agy-powerline が役に立ったら、⭐ を付けていただけると他の agy ユーザーにも見つけてもらいやすくなります。
+
 ## ライセンス
 
 [MIT](LICENSE) © Wassim AZI

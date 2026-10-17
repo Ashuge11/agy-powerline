@@ -28,6 +28,8 @@ const YELLOW = "\x1b[33m";
 const RED = "\x1b[31m";
 const RESET = "\x1b[0m";
 
+const REPO_URL = "https://github.com/wassim-azi/agy-powerline";
+
 // Up to 1.1.0 the runtime was installed as separate files next to
 // statusline.js. They are part of the one-file statusline.js now; delete the
 // old copies by name (regular files only), then the emptied layouts folder.
@@ -171,6 +173,9 @@ async function initCommand(options = {}) {
     console.log(`${CYAN}  npx agy-powerline configure${RESET}`);
     console.log(`${CYAN}  npx agy-powerline doctor${RESET}`);
     console.log("  then restart Antigravity / open a new session.");
+    console.log();
+    console.log(`${DIM} Like it? A star on GitHub helps others find it:${RESET}`);
+    console.log(`${DIM}  ${REPO_URL}${RESET}`);
     console.log();
   } finally {
     rl?.close();

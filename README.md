@@ -153,6 +153,27 @@ Full details: [SECURITY.md](SECURITY.md).
 
 Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) (setup, architecture, adding a widget or theme) and the [Code of Conduct](CODE_OF_CONDUCT.md). Open pull requests against `develop`. Report bugs in [GitHub issues](https://github.com/wassim-azi/agy-powerline/issues) or share ideas and feedback in [Discussions](https://github.com/wassim-azi/agy-powerline/discussions).
 
+Thanks to everyone who has contributed:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4?s=80" width="80px;" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a><br /><a href="#design-yatharth2soni" title="Design">🎨</a> <a href="https://github.com/wassim-azi/agy-powerline/commits?author=yatharth2soni" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4?s=80" width="80px;" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a><br /><a href="https://github.com/wassim-azi/agy-powerline/commits?author=dannyward630" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+If agy-powerline is useful to you, a ⭐ helps other agy users find it.
+
 ## License
 
 [MIT](LICENSE) © Wassim AZI
