@@ -6,7 +6,7 @@ This document explains how to set up the development environment, the architectu
 
 ---
 
-Using an AI coding agent (Claude Code, Codex, Cursor, ...)? It picks up [AGENTS.md](AGENTS.md), which gives it the commands, rules and workflow below in condensed form.
+Using an AI coding agent (Antigravity CLI, Claude Code, Codex, Cursor, Copilot, ...)? It picks up [AGENTS.md](AGENTS.md), which gives it the commands, rules and workflow below in condensed form.
 
 ## 🛠️ Quickstart & Development Setup
 
@@ -220,7 +220,7 @@ Run `npm test` to ensure it passes, then `npm run test:update` if the bar's outp
 
 ### 5. Document it
 
-Add the widget to the widget table in `README.md` (and the same row in the translations `README.zh-CN.md` and `README.ja.md`; a description in English is fine if you don't speak the language) and to the Widgets list in `docs/configuration.md`, and add a `CHANGELOG.md` entry.
+Add the widget to the widget table in `README.md` (and the same row in every translation, `README.<lang>.md`; a description in English is fine if you don't speak the language) and to the Widgets list in `docs/configuration.md`, and add a `CHANGELOG.md` entry. The `readme` test suite fails if a README misses the widget.
 
 ---
 
@@ -240,7 +240,7 @@ Themes live in **one file** (`src/lib/themes.js`).
    Dark themes use bright colors with `DARK_TEXT`; light themes use deep colors with `LIGHT_TEXT` (white).
 2. Run `npm test`. The theme tests check that every color reaches 4.5:1 contrast against the pill text and the terminal background, and that `fiveHour` (ok), `caution` and `warn` (danger) are clearly different. Color-blind themes must also pass simulated protanopia, deuteranopia and tritanopia.
 3. Look at it with `node src/index.js theme --gallery` on a terminal of the matching background.
-4. Add it to the themes table in `README.md`, `README.zh-CN.md` and `README.ja.md`.
+4. Add it to the themes table in `README.md` and in every translation (`README.<lang>.md`); the `readme` test suite fails if one misses it.
 
 ---
 
@@ -312,10 +312,10 @@ Pull requests are **squash-merged**: your PR becomes one commit on `develop`, an
 ## 📒 Changelog
 
 - **Every user-visible change gets a `CHANGELOG.md` entry in the same PR** (new feature, behavior change, bug fix, security fix, removed option). Skip it only for changes users can't notice: tests, CI, refactors, typo fixes in docs.
-  - Until 1.0.0 is published on npm, everything goes in `## [1.0.0]`, which is a short summary of the release: fold the change into the bullet it belongs to (or add one short bullet).
-  - After that, under `## [Unreleased]` at the top of the file; create that section if it's missing. Never add entries to a version that's already released.
-  - How (from `[Unreleased]` on): one line per change, written for users, under the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) heading that fits (`### Added`, `### Changed`, `### Fixed`, `### Removed`, `### Security`), ending with the issue or PR number when there is one, e.g. `- Battery widget shows charging state (#42)`.
+  - Entries go under `## [Unreleased]` at the top of the file; create that section if it's missing. Never add entries to a version that's already released: a change belongs to the first release tag that contains it (`git tag --contains <commit>`).
+  - One line per change, written for users, under the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) heading that fits (`### Added`, `### Changed`, `### Fixed`, `### Removed`, `### Security`), ending with the issue or PR number when there is one, e.g. `- Battery widget shows charging state (#42)`. The release notes are written from these lines.
 - Don't change `version` in `package.json`; the maintainer sets it at release time.
+- **Credits are the maintainer's job.** When your PR is merged, the maintainer adds `thanks @you` to its changelog line and adds you to the contributors table in the READMEs. Leave the table and `.all-contributorsrc` as they are in your PR (a new README translation copies the table and adds its file name to `files` in `.all-contributorsrc`).
 
 At release time the maintainer renames `## [Unreleased]` to the new version and date.
 
@@ -334,14 +334,15 @@ History is linear on both branches: no merge commits. A pull request into `main`
 
 ## 🚀 Submitting a Pull Request
 
-1. Fork the repo and create your branch from `develop`:
+1. Pick an issue, for example one labelled [good first issue](https://github.com/wassim-azi/agy-powerline/labels/good%20first%20issue). Read its comments and the open pull requests first, and pick another one if someone has already claimed it; then comment on it before you start, so two people don't do the same work. One issue per pull request.
+2. Fork the repo and create your branch from `develop`:
    ```bash
    git checkout develop
    git checkout -b feat/my-new-feature
    ```
-2. Make your changes and write tests.
-3. Verify that `npm test` passes with 100% success.
-4. Push your branch and open a Pull Request against **`develop`** (not `main`).
-5. Attach a screenshot or terminal capture for visual changes!
+3. Make your changes and write tests.
+4. Verify that `npm test` passes with 100% success.
+5. Rebase on the latest `develop`, push your branch and open a Pull Request against **`develop`** (not `main`). Push later fixes to the same pull request.
+6. Attach a screenshot or terminal capture for visual changes!
 
-Questions, bugs and ideas go in [GitHub issues](https://github.com/wassim-azi/agy-powerline/issues).
+Bugs go in [GitHub issues](https://github.com/wassim-azi/agy-powerline/issues) (with the output of `npx agy-powerline report`); questions and ideas go in [Discussions](https://github.com/wassim-azi/agy-powerline/discussions).
