@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# A newer push or title edit replaces the check of the previous one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Conventional Commits
