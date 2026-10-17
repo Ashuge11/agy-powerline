@@ -163,8 +163,8 @@ npx agy-powerline doctor       # 检查一切是否为最新
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4?s=80" width="80px;" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a><br /><a href="#design-yatharth2soni" title="Design">🎨</a> <a href="https://github.com/wassim-azi/agy-powerline/commits?author=yatharth2soni" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4?s=80" width="80px;" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a><br /><a href="https://github.com/wassim-azi/agy-powerline/commits?author=dannyward630" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4&s=160" width="80" height="80" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4&s=160" width="80" height="80" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a></td>
     </tr>
   </tbody>
 </table>
