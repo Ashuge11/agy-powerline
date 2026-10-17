@@ -2,7 +2,9 @@ name: Workflow audit
 
 # zizmor audits the GitHub Actions workflows themselves: script injection,
 # token permissions, risky triggers, unpinned actions. release.yml publishes
-# to npm, so a weakness here would reach every user.
+# to npm, so a weakness here would reach every user. actionlint checks that
+# the workflows are valid (syntax, expressions, run: scripts), which matters
+# most for the ones that rarely run, like release.yml and thanks.yml.
 on:
   push:
     branches: [develop, main]
@@ -26,3 +28,29 @@ jobs:
           persist-credentials: false
 
       - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The release binary, checked against its published SHA-256, rather than
+      # a third-party action. Dependabot doesn't see it: bump VERSION and
+      # SHA256 together, from the release's checksums.txt.
+      - name: Install actionlint
+        env:
+          VERSION: 1.7.12
+          SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          curl -fsSLo actionlint.tar.gz "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
+          echo "${SHA256}  actionlint.tar.gz" | sha256sum --check --strict
+          tar -xzf actionlint.tar.gz actionlint
+
+      # shellcheck, preinstalled on the runner, checks the run: scripts too.
+      - name: Lint workflows
+        run: ./actionlint -color
