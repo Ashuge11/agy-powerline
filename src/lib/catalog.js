@@ -126,8 +126,9 @@ const WIDGET_CATALOG = [
     id: "git",
     label: "VCS Branch",
     unique: true,
-    description: "current branch, marked when there are uncommitted changes",
-    summary: "branch and uncommitted changes",
+    description:
+      "current branch, marked when there are uncommitted changes, with how many commits it is ahead of or behind its upstream",
+    summary: "branch, changes and ahead/behind",
   },
   {
     id: "plan",

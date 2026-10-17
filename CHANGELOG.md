@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The statusline exits quietly when Antigravity closes its output pipe (#45, thanks @dannyward630)
+- `configure` describes the `git` widget fully: its list and details panel now mention the ahead/behind counts it shows, not only the branch and uncommitted changes
 
 ## [1.2.0] - 2026-10-16
 

@@ -55,7 +55,7 @@ function testStateCues() {
   record(
     "the lists show each widget's summary (six words at most), the details its description",
     !long.length &&
-      /VCS Branch +branch and uncommitted changes/.test(main) &&
+      /VCS Branch +branch, changes and ahead\/behind/.test(main) &&
       !/marked when there are uncommitted changes/.test(main) &&
       /The model in use\./.test(wide),
     long.map((widget) => widget.id).join(", ")
