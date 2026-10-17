@@ -1,5 +1,6 @@
-# Labels for pull requests, applied by .github/workflows/labeler.yml. The
-# release notes (.github/release.yml) group pull requests by these labels.
+# Labels for pull requests, applied by .github/workflows/labeler.yml. Release
+# notes are written from CHANGELOG.md; when GitHub generates them instead,
+# .github/release.yml groups pull requests by these labels.
 # Labels come from the files a PR touches or from its branch name.
 
 bug:

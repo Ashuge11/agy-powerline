@@ -13,7 +13,7 @@ body:
       label: Feature Category
       description: What part of agy-powerline does this relate to?
       options:
-        - New Widget (e.g. Docker, Git ahead/behind, CPU, etc.)
+        - New Widget (e.g. battery, Docker, CPU)
         - New Theme (color palette)
         - New Layout / Layout Enhancement
         - CLI Command / UX Improvement
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Problem or Motivation
       description: Is your feature request related to a problem or missing capability?
-      placeholder: I am always wondering whether my git branch is ahead of origin...
+      placeholder: My laptop runs out of battery during long agy sessions and I only notice too late...
     validations:
       required: true
   - type: textarea
@@ -35,7 +35,7 @@ body:
       label: Proposed Solution / Design
       description: Describe what you want to happen and how it could look.
       placeholder: |
-        In the pills layout, add a new widget `git_sync` that displays `⇡2 ⇣1`.
+        Add a `battery` widget that shows `🔋 54%` and turns red under 20%.
     validations:
       required: true
   - type: textarea

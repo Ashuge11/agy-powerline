@@ -1,8 +1,8 @@
 name: Branch policy
 
 # main only receives the maintainer's PRs from develop. Contributions go to
-# develop. Make the "main accepts develop only" check required on main
-# (see TODO.md) so GitHub blocks merging anything else.
+# develop. Make the "main accepts develop only" check required in main's
+# branch protection rules, so GitHub blocks merging anything else.
 on:
   pull_request:
     branches: [main]
