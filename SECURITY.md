@@ -70,9 +70,11 @@ Text that does not come from your own config (payload fields, branch names, comm
 
 - Zero runtime dependencies.
 - Releases are published from GitHub Actions with [npm provenance](https://docs.npmjs.com/generating-provenance-statements), so you can verify that a published version was built from this repository.
+- Publishing uses npm trusted publishing (OIDC): no npm token is stored in the repository. Each release needs the maintainer's approval in a protected GitHub environment and is refused unless its tag is on `main`; release tags can't be created, moved or deleted outside that process.
+- Secret scanning with push protection blocks commits that contain credentials.
 - No install scripts (`preinstall`, `install`, `postinstall`, `prepare`) in the published package; CI checks this on every change.
 - The release workflow installs without a cache, so nothing from an earlier run can end up in the published package.
-- GitHub Actions are pinned to exact commits, and [zizmor](https://docs.zizmor.sh/) audits the workflows on every change to them.
+- GitHub Actions are pinned to exact commits, and [zizmor](https://docs.zizmor.sh/) audits the workflows on every change to them, with [actionlint](https://github.com/rhysd/actionlint) checking that they're valid.
 - Dependabot proposes a new dependency version only after it has been out for 7 days.
 - [OpenSSF Scorecard](https://scorecard.dev/) checks the repository's supply-chain practices every week; results are in the repository's Security tab.
 
@@ -82,10 +84,10 @@ Text that does not come from your own config (payload fields, branch names, comm
 
 Only the latest release receives security fixes.
 
-| Version | Supported          |
-| :------ | :----------------- |
-| 1.0.x   | :white_check_mark: |
-| < 1.0.0 | :x:                |
+| Version             | Supported                                        |
+| :------------------ | :----------------------------------------------- |
+| Latest release      | :white_check_mark:                               |
+| Any earlier release | :x: (update with `npx agy-powerline init --yes`) |
 
 ---
 
