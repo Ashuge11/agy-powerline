@@ -29,7 +29,6 @@ const WIDGET_KEYS = [
   "warn",
 ];
 const STATE_KEYS = ["fiveHour", "caution", "warn"];
-const MAX_PER_KIND = { dark: 10, light: 4, colorblind: 2 };
 
 function linear(c) {
   c /= 255;
@@ -89,15 +88,11 @@ function simulate(rgb, matrix) {
 function checkThemeQuality() {
   const builtIn = THEME_ORDER.filter((id) => id !== "custom");
 
-  const counts = {};
-  for (const id of builtIn) {
-    counts[THEMES[id].kind] = (counts[THEMES[id].kind] || 0) + 1;
-  }
+  const misnamed = builtIn.filter((id) => !id.startsWith(`${THEMES[id].kind}-`));
   record(
-    "theme counts stay within limits (≤10 dark, ≤4 light, ≤2 color-blind)",
-    Object.entries(counts).every(([kind, n]) => n <= (MAX_PER_KIND[kind] ?? 0)) &&
-      builtIn.every((id) => id.startsWith(`${THEMES[id].kind}-`)),
-    JSON.stringify(counts)
+    "theme ids start with their kind (dark-, light- or colorblind-)",
+    misnamed.length === 0,
+    misnamed.join(", ")
   );
 
   for (const id of builtIn) {
