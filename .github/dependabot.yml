@@ -16,6 +16,12 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    # Minor and patch updates of the dev tools come as one PR; a major
+    # version gets its own, since it can need config changes.
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -28,3 +34,7 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    # All action updates in one monthly PR.
+    groups:
+      actions:
+        patterns: ["*"]
