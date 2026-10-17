@@ -99,7 +99,7 @@ Follow the matching section of [CONTRIBUTING.md](CONTRIBUTING.md); in short:
 - CommonJS (`require`, `module.exports`), `"use strict"` at the top of new files, double quotes, semicolons.
 - Comments explain _why_, not what. Match the density of the surrounding code.
 - Keep the runtime path fast: no new work on every refresh unless it's cached or cheap (`git` calls already have a 150 ms timeout).
-- **The statusline never crashes or hangs.** Antigravity runs it on every refresh, so runtime code exits 0 quickly on any input (missing or malformed payload, stdin left open, a closed stdout) and never prints an error where the bar goes: stdout gets the bar or nothing, a problem goes to the local log (`src/lib/log.js`) and at most one short, redacted line to stderr, the way `src/runtime/statusline.js` already does it. Cover new failure paths in the `robustness` suite.
+- **The statusline never crashes or hangs.** Antigravity runs it on every refresh, so runtime code exits 0 quickly on any input (missing or malformed payload, stdin left open, a closed stdout) and never prints a stack trace or raw error text where the bar goes: stdout gets the bar, nothing, or a short fixed marker such as `[agy-powerline: invalid JSON]`; a problem goes to the local log (`src/lib/log.js`) and at most one short, redacted line to stderr, the way `src/runtime/statusline.js` already does it. Cover new failure paths in the `robustness` suite.
 - Cross-platform: paths via `path.join`, no shell-specific syntax, and remember Windows runs the statusline through `cmd /c` (see `statuslineCommand()` in `paths.js`). Files use LF line endings (`.gitattributes`).
 
 ## Contributing with an agent
