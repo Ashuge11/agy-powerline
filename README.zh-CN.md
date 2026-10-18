@@ -25,7 +25,7 @@
 一眼看到当前模型、Gemini 5h/7d、Claude/GPT 和 Argon 配额、上下文窗口、git 分支等信息。在交互式编辑器中挑选组件、主题和布局。一条命令即可安装，零依赖。
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline 的 Pills 布局，dark-ocean 主题：代理状态、模型、套餐、项目和 git；上下文；5h 和 7d 配额及重置时间" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline 的 configure：输入 argon 添加 Argon 每周配额，切换到 Dark Metro 主题，再从 Pills 布局切换到 Lines，并实时预览状态栏" width="850">
 </p>
 
 ## 安装
@@ -84,6 +84,7 @@ Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then t
 **Pills**（默认）：powerline 风格的胶囊。可选圆角、尖角、斜角或平直形状，也可以在行与行之间留一个空行。
 
 <p align="center">
+  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline 的 Pills 布局，dark-ocean 主题：代理状态、模型、套餐、项目和 git；上下文；5h 和 7d 配额及重置时间" width="850">
   <img src="assets/screenshots/pills-light.png" alt="agy-powerline 的 Pills 布局，浅色终端上的 light-sky 主题，行间留空" width="850">
 </p>
 

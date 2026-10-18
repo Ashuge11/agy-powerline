@@ -23,7 +23,7 @@
 See your model, Gemini 5h/7d, Claude/GPT and Argon quotas, context window, git branch and more at a glance. Pick widgets, themes and layout from an interactive editor. One command to install, no dependencies.
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline Pills layout with the dark-ocean theme: agent state, model, plan, project and git; context; 5h and 7d quotas with resets" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline configure: add Argon's weekly quota by typing argon, switch to the Dark Metro theme, then from the Pills to the Lines layout, with a live preview of the bar" width="850">
 </p>
 
 ## Install
@@ -95,6 +95,7 @@ Preview them all in the [theme gallery](https://agy-powerline.com/) or with `npx
 **Pills** (default): powerline-style capsules. Choose round, angled, slanted or flat shapes, and optionally a blank line between rows.
 
 <p align="center">
+  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline Pills layout with the dark-ocean theme: agent state, model, plan, project and git; context; 5h and 7d quotas with resets" width="850">
   <img src="assets/screenshots/pills-light.png" alt="agy-powerline Pills layout with the light-sky theme on a light terminal, with space between rows" width="850">
 </p>
 

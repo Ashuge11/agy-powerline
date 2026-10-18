@@ -25,7 +25,7 @@
 使用中のモデル、Gemini の 5h/7d・Claude/GPT・Argon のクォータ、コンテキストウィンドウ、git ブランチなどがひと目でわかります。ウィジェット、テーマ、レイアウトは対話式のエディターで選べます。インストールはコマンドひとつ、依存パッケージはありません。
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="dark-ocean テーマの agy-powerline Pills レイアウト：エージェントの状態、モデル、プラン、プロジェクト、git；コンテキスト；5h と 7d のクォータとリセットまでの時間" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline の configure：argon と入力して Argon の週間クォータを追加し、Dark Metro テーマに切り替え、Pills から Lines レイアウトへ。バーのライブプレビュー付き" width="850">
 </p>
 
 ## インストール
@@ -84,6 +84,7 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
 **Pills**（デフォルト）：powerline 風のカプセル。形は丸型、山型、斜め、フラットから選べ、行の間に空行を入れることもできます。
 
 <p align="center">
+  <img src="assets/screenshots/pills-dark.png" alt="dark-ocean テーマの agy-powerline Pills レイアウト：エージェントの状態、モデル、プラン、プロジェクト、git；コンテキスト；5h と 7d のクォータとリセットまでの時間" width="850">
   <img src="assets/screenshots/pills-light.png" alt="明るいターミナルでの light-sky テーマの agy-powerline Pills レイアウト、行間あり" width="850">
 </p>
 
