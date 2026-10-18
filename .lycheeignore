@@ -1,0 +1,6 @@
+# npm answers link checkers with 403, and GitHub's stargazers page with 404;
+# both pages work in a browser.
+^https://www\.npmjs\.com/
+^https://github\.com/wassim-azi/agy-powerline/stargazers$
+# Star History's #… is a client-side route, not an anchor in the page.
+^https://star-history\.com/#
