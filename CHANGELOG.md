@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- CodeQL static code analysis workflow (`.github/workflows/codeql.yml`)
+- README badges for the live web configurator, GitHub stars, CodeQL, and OS platform logos
+
 ## [1.3.0] - 2026-10-18
 
 ### Added
