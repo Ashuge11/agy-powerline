@@ -191,6 +191,10 @@ Merci à toutes les personnes ayant contribué au projet :
 
 Si agy-powerline vous est utile, une ⭐ permet à d’autres utilisateurs d’agy de le découvrir.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wassim-azi/agy-powerline&type=Date)](https://star-history.com/#wassim-azi/agy-powerline&Date)
+
 ## Licence
 
 [MIT](LICENSE) © Wassim AZI

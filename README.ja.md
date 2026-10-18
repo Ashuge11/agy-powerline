@@ -191,6 +191,10 @@ npx agy-powerline doctor       # すべてが最新か確認
 
 agy-powerline が役に立ったら、⭐ を付けていただけると他の agy ユーザーにも見つけてもらいやすくなります。
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wassim-azi/agy-powerline&type=Date)](https://star-history.com/#wassim-azi/agy-powerline&Date)
+
 ## ライセンス
 
 [MIT](LICENSE) © Wassim AZI
