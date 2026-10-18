@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `exec` widgets can read the session JSON on stdin with `"payload": true` (your email and session IDs are removed first) and keep the colors their command prints with `"colors": true`; `docs/configuration.md` has recipes (#81)
 - Git detail widgets, each opt-in: `gitChanges` (lines added and removed), `gitFiles` (staged, modified, untracked and conflicted files), `gitSha` (commit ID), `gitStash` (stash count) and `gitWorktree` (linked worktree name); with `gitFiles` on the bar, the `git` widget's dirty marker also counts uncommitted files (#82)
 - `npx agy-powerline export [file]` and `npx agy-powerline import <file>` save and load your config: import shows what changes and previews the bar first, `--merge` changes only the settings in the file, new shell commands need their own confirmation or `--allow-exec`, and the previous config is kept as `statusline.config.json.bak` (#83)
-- The README in French (`README.fr.md`) (#51)
+- The README in French (`README.fr.md`) (#51, thanks @dharamdan01)
 
 ### Changed
 
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Exec widget intervals are always read in seconds; values of 1000 or more were read as milliseconds (#68).
+- Exec widget intervals are always read in seconds; values of 1000 or more were read as milliseconds (#68, thanks @hiyouwhatsapp).
 - The statusline exits quietly when Antigravity closes its output pipe (#45, thanks @dannyward630)
 - `init` and `uninstall` keep a `settings.json` symlinked by a dotfile manager (stow, chezmoi, yadm) as a link and write the change into the file it points to; they used to replace the link with a plain file, so the real file never got the change. The same goes for a symlinked `statusline.config.json`
 - A second `init` no longer loses your original `settings.json`: the first backup is now kept as `settings.json.agy-powerline.original.bak` and never replaced, next to the latest one

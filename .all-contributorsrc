@@ -24,6 +24,34 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/71604164?v=4",
       "profile": "https://github.com/dannyward630",
       "contributions": ["code"]
+    },
+    {
+      "login": "yoreva-01",
+      "name": "Yusuf Orçan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/195282707?v=4",
+      "profile": "https://github.com/yoreva-01",
+      "contributions": ["test"]
+    },
+    {
+      "login": "yuefdev",
+      "name": "Yusuf Efe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/120668197?v=4",
+      "profile": "https://github.com/yuefdev",
+      "contributions": ["code", "test"]
+    },
+    {
+      "login": "hiyouwhatsapp",
+      "name": "hiyouwhatsapp",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89997383?v=4",
+      "profile": "https://github.com/hiyouwhatsapp",
+      "contributions": ["code"]
+    },
+    {
+      "login": "dharamdan01",
+      "name": "dharamdan01",
+      "avatar_url": "https://avatars.githubusercontent.com/u/188893946?v=4",
+      "profile": "https://github.com/dharamdan01",
+      "contributions": ["translation"]
     }
   ]
 }
