@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-10-20
 
 ### Added
 
@@ -24,7 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The setup and customize skills run commands from the plugin's own copy when npx can't reach npm (#123)
 - `configure` → Themes shows a theme's palette in two columns with space between the pills
 - Presets are named after what they show: Default, Compact, Agent activity, Git focus, Token usage, Quota watch and Everything
-- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, in three rows: plan and model, then the 5h and 7d quotas side by side, then third-party and Argon; `preset workspace` and `preset limits` no longer work
+- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, in three rows: plan and model, then the 5h and 7d quotas side by side, then third-party and Argon
+
+### Removed
+
+- The preset names `workspace` and `limits`: use `agent` and `quotas`. `preset workspace`, `preset limits` and `init --preset` with either name stop with an error that lists the presets; saved configs keep working
 
 ### Fixed
 
