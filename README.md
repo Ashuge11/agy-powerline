@@ -71,13 +71,15 @@ Changes apply to a running `agy` on its next refresh.
 
 Start from a preset, then adjust:
 
-| Preset      | Shows                                                                        |
-| ----------- | ---------------------------------------------------------------------------- |
-| `default`   | Model, context, git; 5h and 7d quotas with resets on a second row            |
-| `compact`   | One line: short model, tightest quota, context %, git                        |
-| `workspace` | Project, git, agent state, model; context, tightest quota and mode           |
-| `limits`    | Every quota (5h, 7d, third-party, Argon), one per row                        |
-| `full`      | Everything: session, project and git; context, tokens and cache; both quotas |
+| Preset    | Shows                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------- |
+| `default` | Model, context, git; 5h and 7d quotas with resets on a second row                         |
+| `compact` | One line: short model, tightest quota, context %, git                                     |
+| `agent`   | Agent state, subagents, title, mode, sandbox; model, context %, artifacts, tightest quota |
+| `git`     | Project, branch, worktree, stash; file counts, line changes, commit                       |
+| `tokens`  | Context tokens, session tokens in/out, cache hit; tokens today and over 7 days            |
+| `quotas`  | Plan and model; every quota (5h, 7d, third-party, Argon), one per row                     |
+| `full`    | Everything: session, project and git; context, tokens and cache; both quotas              |
 
 ### Themes
 

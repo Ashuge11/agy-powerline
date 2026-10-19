@@ -295,7 +295,15 @@ const TAB_OF_SCREEN = {
   glyphs: "powerline",
 };
 
-const PRESET_ICONS = { default: "🎯", compact: "⚡", workspace: "📂", limits: "🔋", full: "🚀" };
+const PRESET_ICONS = {
+  default: "🎯",
+  compact: "⚡",
+  agent: "🧠",
+  git: "🔀",
+  tokens: "📊",
+  quotas: "🔋",
+  full: "🚀",
+};
 
 // Set by renderFrame so tests can draw a screen at a fixed size.
 let columnsOverride = null;
@@ -1029,20 +1037,37 @@ const toHex = (rgb) => `#${rgb.map((part) => part.toString(16).padStart(2, "0"))
 
 // One color as a pill in that color with the theme's pill text, the way the
 // bar draws it, then its hex value.
-function colorLine(label, rgb, ink) {
-  return { raw: `${ui.pill(` ${label.padEnd(9)}`, rgb, ink)}  ${dim(toHex(rgb))}` };
+function colorCell(label, rgb, ink) {
+  return `${ui.pill(` ${label.padEnd(9)}`, rgb, ink)}  ${dim(toHex(rgb))}`;
 }
 
-const PALETTE_SLOTS = [
-  ["model", "Model"],
-  ["context", "Context"],
-  ["git", "Git"],
-  ["weekly", "7d quota"],
-  ["meta", "Details"],
-  ["fiveHour", "OK"],
-  ["caution", "Caution"],
-  ["warn", "Danger"],
+// Widget colors on the left, states on the right; a blank line between rows
+// keeps the pills from touching.
+const PALETTE_ROWS = [
+  [
+    ["model", "Model"],
+    ["fiveHour", "OK"],
+  ],
+  [
+    ["context", "Context"],
+    ["caution", "Caution"],
+  ],
+  [
+    ["git", "Git"],
+    ["warn", "Danger"],
+  ],
+  [
+    ["weekly", "7d quota"],
+    ["meta", "Details"],
+  ],
 ];
+
+function paletteLines(colors) {
+  return PALETTE_ROWS.flatMap((row, index) => [
+    ...(index ? [""] : []),
+    { raw: row.map(([slot, label]) => colorCell(label, colors[slot], colors.text)).join("    ") },
+  ]);
+}
 
 function themeDetails(id) {
   if (id === "custom") {
@@ -1067,9 +1092,7 @@ function themeDetails(id) {
       ...(background ? [{ raw: `${dim("For")} ${ui.tag(background)}` }] : []),
       "",
       heading("Palette"),
-      ...PALETTE_SLOTS.map(([slot, label]) =>
-        colorLine(label, theme.colors[slot], theme.colors.text)
-      ),
+      ...paletteLines(theme.colors),
       "",
       heading("Sample"),
       ...themeSample(theme.colors),

@@ -67,7 +67,12 @@ function fillMeter(pct, width, fillColor, emptyColor, segmentColor, pace = {}) {
   const ratio = Math.max(0, Math.min(100, Number(pct))) / 100;
   const used = Math.round(ratio * width);
   const marker = paceIndex(pace.elapsedPct, width);
-  if (METER_STYLES[pace.style]) {
+  // pips, the default, needs a Unicode font: ASCII mode keeps the cells.
+  const pips = pace.style === "pips";
+  if (pips && !pace.ascii && getActiveDepth() !== "none") {
+    return pipMeter(used, marker, width, fillColor, emptyColor) + bg(segmentColor);
+  }
+  if (METER_STYLES[pace.style] && !(pips && pace.ascii)) {
     return glyphMeter(used, marker, width, METER_STYLES[pace.style], pace);
   }
   // The fill is a background color; without color it is drawn with glyphs.
@@ -87,10 +92,30 @@ function fillMeter(pct, width, fillColor, emptyColor, segmentColor, pace = {}) {
   return meter + bg(segmentColor);
 }
 
+// Small dots on the pill's own color: the filled ones in the light fill color,
+// the rest in the dark track color, the same pair cells use. The pace marker
+// is a larger dot in the other color, so nothing in the meter is a line.
+function pipMeter(used, marker, width, fillColor, emptyColor) {
+  let meter = "";
+  let color = null;
+
+  for (let i = 0; i < width; i++) {
+    const filled = i < used;
+    const next = i === marker ? (filled ? emptyColor : fillColor) : filled ? fillColor : emptyColor;
+    if (next !== color) {
+      meter += fg(next);
+      color = next;
+    }
+    meter += i === marker ? METER_STYLES.pips[2] : METER_STYLES.pips[0];
+  }
+
+  return meter;
+}
+
 // A glyph style draws on the pill's own color, with no cells: filled glyphs in
 // the pill's text color (readable on the pill, gradients included), empty
 // ones in the same color dimmed. ASCII mode keeps # and -.
-function glyphMeter(used, marker, width, [full, empty], { ascii, textColor }) {
+function glyphMeter(used, marker, width, [full, empty, pace], { ascii, textColor }) {
   let meter = fg(textColor);
   let dim = false;
 
@@ -101,7 +126,7 @@ function glyphMeter(used, marker, width, [full, empty], { ascii, textColor }) {
       dim = blank;
     }
     if (i === marker) {
-      meter += paceGlyph(ascii);
+      meter += (!ascii && pace) || paceGlyph(ascii);
     } else if (ascii) {
       meter += blank ? "-" : "#";
     } else {
@@ -686,7 +711,6 @@ function buildRows(session, config, colors) {
   // The widgets shown in the current row, so a gradient can be spread over
   // exactly those once the row is complete.
   let placed = [];
-  const splitEveryWidget = !config.powerline.enabled;
   const gradient = gradientStops(config.gradient);
 
   function styledSegment(widget, ownColors) {
@@ -767,13 +791,8 @@ function buildRows(session, config, colors) {
       continue;
     }
 
-    const group = splitEveryWidget ? [] : current;
-    placed.push({ widget, group, index: group.length });
-    group.push(segment);
-
-    if (splitEveryWidget) {
-      groups.push(group);
-    }
+    placed.push({ widget, group: current, index: current.length });
+    current.push(segment);
   }
 
   flushRow();
@@ -794,20 +813,36 @@ function rightCap(color, terminal, glyph) {
   return glyph ? fg(color) + capBackground(terminal) + glyph : "";
 }
 
+// Compared as the terminal will draw them: at 256 colors two different colors
+// can land on the same code, and without color everything is the same.
 function sameColor(a, b) {
-  return String(a) === String(b);
+  return bg(a) === bg(b);
+}
+
+// Each solid Powerline glyph (U+E0B0 to U+E0BE, even code points) has a thin
+// outline twin at the next code point. The round twins are drawn shorter than
+// the cell in many Nerd Fonts, so round joins use a box-drawing line, which
+// spans the full height.
+function thinGlyph(glyph) {
+  const code = glyph.codePointAt(0);
+  if (glyph.length !== 1 || code < 0xe0b0 || code > 0xe0be || code % 2 !== 0) {
+    return glyph;
+  }
+  return code === 0xe0b4 || code === 0xe0b6 ? "│" : String.fromCodePoint(code + 1);
 }
 
 // A separator between two widgets of the same color would vanish, so it is
-// drawn in the text color instead. Inverted separators (meant for
+// drawn as its thin outline in the text color instead, the way Powerline
+// divides one color. ASCII joins are characters, not shapes, so they take the
+// text color too, which reads on any pill. Inverted separators (meant for
 // left-pointing glyphs) take the next widget's color on the previous one's.
-function joinSegments(previous, next, glyph, invert, textColor) {
+function joinSegments(previous, next, glyph, invert, textColor, ascii = false) {
   if (!glyph) {
     return "";
   }
 
-  if (sameColor(previous.color, next.color)) {
-    return fg(next.textColor || textColor) + bg(next.color) + glyph;
+  if (ascii || sameColor(previous.color, next.color)) {
+    return fg(next.textColor || textColor) + bg(next.color) + thinGlyph(glyph);
   }
 
   return invert
@@ -846,13 +881,19 @@ function renderMeterSegment(segment, colors, ascii = false) {
 
 // Caps cycle per pill and separators per join, counted across the whole
 // statusline, so lists with several glyphs alternate from left to right.
+// Glyphs are drawn without bold, which some fonts draw wider or shifted, and
+// the pill ends on the terminal's background so the padding after it stays
+// clear even without an end cap. Without color, solid caps would be blobs of
+// text color, so only ASCII brackets are kept.
 function renderGroup(group, colors, config, counters = { pill: 0, separator: 0 }) {
   const { powerline } = config;
   const ascii = config.ascii === true;
   const terminal = colors.terminal;
   const pillIndex = counters.pill++;
-  const startCap = glyphChar(pickGlyph(powerline.startCaps, pillIndex), "startCap", ascii);
-  const endCap = glyphChar(pickGlyph(powerline.endCaps, pillIndex), "endCap", ascii);
+  const caps = ascii || getActiveDepth() !== "none";
+  const cap = (list, slot) => (caps ? glyphChar(pickGlyph(list, pillIndex), slot, ascii) : "");
+  const startCap = cap(powerline.startCaps, "startCap");
+  const endCap = cap(powerline.endCaps, "endCap");
 
   let out = leftCap(group[0].color, terminal, startCap);
 
@@ -873,13 +914,22 @@ function renderGroup(group, colors, config, counters = { pill: 0, separator: 0 }
       const slot = counters.separator++;
       const glyph = glyphChar(pickGlyph(powerline.separators, slot), "separator", ascii);
       const invert = powerline.separatorInvert[slot % (powerline.separators.length || 1)];
-      out += joinSegments(segment, group[i + 1], glyph, invert === true, colors.text);
+      out +=
+        NORMAL + joinSegments(segment, group[i + 1], glyph, invert === true, colors.text, ascii);
     }
   }
 
-  out += rightCap(group[group.length - 1].color, terminal, endCap);
+  const last = group[group.length - 1].color;
+  return out + NORMAL + (endCap ? rightCap(last, terminal, endCap) : capBackground(terminal));
+}
 
-  return out;
+// With joins off every widget is a pill of its own, one space from the next;
+// the Flex Separator still decides where the row opens up.
+function renderPills(group, colors, config, counters) {
+  if (config.powerline.enabled) {
+    return renderGroup(group, colors, config, counters);
+  }
+  return group.map((segment) => renderGroup([segment], colors, config, counters)).join(" ");
 }
 
 function joinFlex(parts, terminalWidth) {
@@ -917,7 +967,7 @@ function renderPillRows(rows, session, colors, config) {
   return rows
     .map((row) =>
       joinFlex(
-        row.map((group) => renderGroup(group, colors, config, counters)),
+        row.map((group) => renderPills(group, colors, config, counters)),
         session.terminalWidth
       )
     )

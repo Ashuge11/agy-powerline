@@ -102,7 +102,8 @@ const COMMANDS = [
   {
     name: "preset",
     arg: "[name]",
-    description: "View or apply a widget preset (default, compact, workspace, limits, full)",
+    description:
+      "View or apply a widget preset (default, compact, agent, git, tokens, quotas, full)",
     options: {
       list: { type: "boolean", short: "l", help: "list all available presets" },
     },

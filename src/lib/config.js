@@ -255,11 +255,12 @@ function saveConfig(config) {
 }
 
 // Presets set the widget list only; the layout (Pills or Lines) stays the one
-// the user picked. Each keeps all its widgets at 80 columns (full at 100).
+// the user picked. Each answers one question and keeps all its widgets at 80
+// columns (full at 100); widgets with nothing to show hide on their own.
 const PRESETS = {
   default: {
     id: "default",
-    name: "Everyday",
+    name: "Default",
     description: "Model, context and git; 5h and 7d quotas with resets on a second row",
     widgets: [
       { id: "model" },
@@ -277,32 +278,75 @@ const PRESETS = {
   },
   compact: {
     id: "compact",
-    name: "One line",
-    description: "Short model, tightest quota, context % and git on a single row",
+    name: "Compact",
+    description: "One row: short model, tightest quota, context % and git",
     widgets: [{ id: "model", short: true }, { id: "quota" }, { id: "contextPct" }, { id: "git" }],
   },
-  workspace: {
-    id: "workspace",
-    name: "Several repos",
-    description: "Project, git, agent state and model; context, tightest quota and mode below",
+  agent: {
+    id: "agent",
+    name: "Agent activity",
+    description: "Agent state, subagents, title and mode; context, artifacts, quota",
+    widgets: [
+      { id: "agentState" },
+      { id: "tasks" },
+      { id: "title" },
+      { id: "separator" },
+      { id: "mode" },
+      { id: "sandbox" },
+      { id: "lineBreak" },
+      { id: "model", short: true },
+      { id: "contextPct" },
+      { id: "artifacts" },
+      { id: "separator" },
+      { id: "quota" },
+    ],
+  },
+  git: {
+    id: "git",
+    name: "Git focus",
+    description: "Project, branch, worktree, stash; changed files and lines, commit",
     widgets: [
       { id: "project" },
       { id: "git" },
-      { id: "agentState" },
+      { id: "gitWorktree" },
+      { id: "gitStash" },
       { id: "separator" },
       { id: "model", short: true },
       { id: "lineBreak" },
-      { id: "context" },
+      { id: "gitFiles" },
+      { id: "gitChanges" },
+      { id: "gitSha" },
       { id: "separator" },
+      { id: "contextPct" },
       { id: "quota" },
-      { id: "mode" },
     ],
   },
-  limits: {
-    id: "limits",
-    name: "Heavy usage",
-    description: "5h, 7d, third-party and Argon quotas with resets, one quota per row",
+  tokens: {
+    id: "tokens",
+    name: "Token usage",
+    description: "Session tokens in and out, cache hit; tokens today and over 7 days",
     widgets: [
+      { id: "model", short: true },
+      { id: "contextTokens" },
+      { id: "separator" },
+      { id: "totalTokens", split: true },
+      { id: "cacheHit" },
+      { id: "lineBreak" },
+      { id: "tokensToday" },
+      { id: "tokensWeek" },
+      { id: "separator" },
+      { id: "quota" },
+    ],
+  },
+  quotas: {
+    id: "quotas",
+    name: "Quota watch",
+    description: "Plan and model; 5h, 7d, third-party and Argon quotas, one per row",
+    widgets: [
+      { id: "plan" },
+      { id: "separator" },
+      { id: "model", short: true },
+      { id: "lineBreak" },
       { id: "fiveHourBar" },
       { id: "fiveHourReset" },
       { id: "lineBreak" },
@@ -319,7 +363,7 @@ const PRESETS = {
   full: {
     id: "full",
     name: "Everything",
-    description: "Session, project and git; context, tokens and cache; both quotas, on three rows",
+    description: "Session, project and git; context, tokens and cache; both quotas",
     widgets: [
       { id: "agentState" },
       { id: "tasks" },
@@ -344,7 +388,7 @@ const PRESETS = {
   },
 };
 
-const PRESET_ORDER = ["default", "compact", "workspace", "limits", "full"];
+const PRESET_ORDER = ["default", "compact", "agent", "git", "tokens", "quotas", "full"];
 
 function applyPreset(baseConfig, presetName) {
   const preset = PRESETS[presetName] || PRESETS.default;

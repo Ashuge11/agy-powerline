@@ -12,11 +12,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CodeQL static code analysis workflow (`.github/workflows/codeql.yml`)
 - README badges for the live web configurator, GitHub stars, CodeQL, and OS platform logos
 - Star History chart in READMEs
+- `git` preset (project, branch, worktree, stash; changed files and lines, commit) and `tokens` preset (session tokens, cache hit, tokens today and over 7 days)
 - Each GitHub release has plugin archives attached (`agy-powerline-plugin-<version>.zip` and `.tar.gz`), for `agy plugin install` where npm or cloning from GitHub is blocked; `docs/install.md` → Install without npm (#123)
 
 ### Changed
 
+- Pills draw meters as small dots (`pips`), with a larger dot as the pace marker, instead of solid colored blocks; `"meterStyle": "cells"` keeps the blocks, and ASCII mode keeps them too
 - The setup and customize skills run commands from the plugin's own copy when npx can't reach npm (#123)
+- `configure` → Themes shows a theme's palette in two columns with space between the pills
+- Presets are named after what they show: Default, Compact, Agent activity, Git focus, Token usage, Quota watch and Everything
+- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, with plan and model on its first row; `preset workspace` and `preset limits` no longer work
+
+### Fixed
+
+- In the Pills layout, two neighboring widgets of the same color (a quota meter and its reset) are divided by a thin line instead of a solid black arrow or half-circle
+- Pill caps and separators are no longer drawn in bold, which some fonts draw wider or shifted
+- The flat style (no end caps) no longer paints the space after a pill in that pill's color
+- With joins off, a row's pills sit one space apart and only Flex Separators spread them, instead of every gap stretching
+- Without color, pills no longer show solid caps and joins as blocks of text color
+- ASCII joins (`>`) are drawn in the text color, readable on any pill
+- In 256-color mode, colors map to the nearest terminal color (near-black text was navy blue), and widgets whose colors land on the same code get a visible divider
 
 ### Security
 

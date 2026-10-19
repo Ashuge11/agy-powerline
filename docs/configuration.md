@@ -35,7 +35,7 @@ Enter on a widget opens its options: color, label (shown or value only), and wha
 | `s`                    | Insert Flex Separator after the current item                                      |
 | `n`                    | Insert New Line (next widgets go on the next row)                                 |
 | `x`, Delete, Backspace | Remove                                                                            |
-| `o`                    | Presets (`default`, `compact`, `workspace`, `limits`, `full`)                     |
+| `o`                    | Presets (`default`, `compact`, `agent`, `git`, `tokens`, `quotas`, `full`)        |
 | `t`                    | Themes (select `Custom` or press `c`/`e` to open in-TUI color editor)             |
 | `l`                    | Layout (Pills or Lines)                                                           |
 | `p`                    | Powerline (style, separators, start and end caps)                                 |
@@ -106,37 +106,39 @@ Any widget accepts these options:
 
 ## Quota pace marker
 
-Every 5h, 7d, third-party and Argon quota meter carries a marker, `┃` (`|` in ASCII mode), at the point the quota window has reached. The bar fills from the left as quota is used, so you can read it at a glance:
+Every 5h, 7d, third-party and Argon quota meter carries a marker, a larger dot `●` in the default Pills meter and `┃` in the others (`|` in ASCII mode), at the point the quota window has reached. The bar fills from the left as quota is used (the light dots are the fill), so you can read it at a glance:
 
 ```
-⏳ ███  ┃       72.0% rem    fill behind the marker: you're using quota slower than time passes
-📅 ████████┃██   21.0% rem    fill past the marker: at this rate the quota runs out before it resets
+⏳ •••••●••••••  72.0% rem    fill behind the marker: you're using quota slower than time passes
+📅 •••••••••●••  21.0% rem    fill past the marker: at this rate the quota runs out before it resets
 ```
 
 The marker needs no extra data: it comes from the reset time Antigravity already sends and the fixed 5-hour and 7-day window lengths. It's hidden when the reset is further away than the window itself. Turn it off with `"pacing": false` (or `r` in `configure`), or per widget with `"pace": false`.
 
 ## Meter styles
 
-Pills draw meters as colored cells and Lines as dots. `"meterStyle"` picks another look for every meter, and `"meter"` on a meter widget (`fiveHourBar`, `weeklyBar`, `thirdPartyFiveHour`, `thirdPartyWeekly`, `argonWeekly`, `context`) for that one; the widget's value wins. `configure` sets the per-widget one (Enter on a meter widget, then **Meter**).
+Pills draw meters as small dots and Lines as larger ones. `"meterStyle"` picks another look for every meter, and `"meter"` on a meter widget (`fiveHourBar`, `weeklyBar`, `thirdPartyFiveHour`, `thirdPartyWeekly`, `argonWeekly`, `context`) for that one; the widget's value wins. `configure` sets the per-widget one (Enter on a meter widget, then **Meter**).
 
 ```json
 { "meterStyle": "geometric", "widgets": [{ "id": "fiveHourBar", "meter": "blocks" }] }
 ```
 
-| Id                   | Filled           | Empty                | Example (50%)           |
-| -------------------- | ---------------- | -------------------- | ----------------------- |
-| `cells` (Pills' own) | background color | darker background    | the default Pills meter |
-| `dots` (Lines' own)  | `●`              | `●` in a track color | the default Lines meter |
-| `blocks`             | `█`              | `░`                  | `█████░░░░░`            |
-| `shade`              | `▓`              | `░`                  | `▓▓▓▓▓░░░░░`            |
-| `line`               | `━`              | `─`                  | `━━━━━─────`            |
-| `geometric`          | `▰`              | `▱`                  | `▰▰▰▰▰▱▱▱▱▱`            |
-| `squares`            | `■`              | `□`                  | `■■■■■□□□□□`            |
-| `braille`            | `⣿`              | `⣀`                  | `⣿⣿⣿⣿⣿⣀⣀⣀⣀⣀`            |
-| `bars`               | `▮`              | `▯`                  | `▮▮▮▮▮▯▯▯▯▯`            |
+| Id                  | Filled               | Empty                | Example (50%)           |
+| ------------------- | -------------------- | -------------------- | ----------------------- |
+| `pips` (Pills' own) | `•` in a light color | `•` in a dark color  | the default Pills meter |
+| `cells`             | background color     | darker background    | solid colored blocks    |
+| `dots` (Lines' own) | `●`                  | `●` in a track color | the default Lines meter |
+| `blocks`            | `█`                  | `░`                  | `█████░░░░░`            |
+| `shade`             | `▓`                  | `░`                  | `▓▓▓▓▓░░░░░`            |
+| `line`              | `━`                  | `─`                  | `━━━━━─────`            |
+| `geometric`         | `▰`                  | `▱`                  | `▰▰▰▰▰▱▱▱▱▱`            |
+| `squares`           | `■`                  | `□`                  | `■■■■■□□□□□`            |
+| `braille`           | `⣿`                  | `⣀`                  | `⣿⣿⣿⣿⣿⣀⣀⣀⣀⣀`            |
+| `bars`              | `▮`                  | `▯`                  | `▮▮▮▮▮▯▯▯▯▯`            |
 
-- `cells` exists only in Pills; in Lines it draws `dots`. An unknown id is ignored and each layout draws its own.
-- In Pills a glyph style draws on the pill's color: filled glyphs in the pill's text color, empty ones dimmed. In Lines the filled part keeps its ok, caution or danger color and the empty part the track color.
+- `cells` exists only in Pills; in Lines it draws `dots`. ASCII mode draws `pips` as `cells`. An unknown id is ignored and each layout draws its own.
+- `pips` marks the pace with a larger dot `●` instead of `┃`. In Pills it draws on the pill's color with the light fill and dark track colors `cells` uses.
+- In Pills the other glyph styles draw on the pill's color: filled glyphs in the pill's text color, empty ones dimmed. In Lines the filled part keeps its ok, caution or danger color and the empty part the track color.
 - Meters keep their width (12 columns in Pills, 25 in Lines, 12 when fitted to a narrow terminal) and the pace marker stays where it is.
 - ASCII mode always draws `#` and `-` (and `|` for the pace marker), whatever the style.
 
@@ -328,9 +330,10 @@ Every glyph is configurable under `"powerline"`, written as a hex code point:
 }
 ```
 
-- `enabled`: join adjacent widgets into one pill. `false` gives every widget its own pill.
+- `enabled`: join adjacent widgets into one pill. `false` gives every widget its own pill, one space from the next; Flex Separators still decide where the row opens up.
 - `separators`, `startCaps`, `endCaps`: lists of code points (`"E0B0"`, `"U+E0B0"` and `"0xE0B0"` all work). With several glyphs, separators cycle per join and caps cycle per pill, left to right. An empty list turns that slot off.
 - `separatorInvert`: one flag per separator. Left-pointing glyphs (`E0B2`, `E0B6`) need `true` so they take the next widget's color on the previous widget's background.
+- Two neighboring widgets of the same color are divided by a thin line in the text color: the glyph's thin twin (`E0B1` for `E0B0`), or `│` for round joins. Without color (`NO_COLOR`, `"color": "none"`), caps are left out and every join is drawn that way.
 - A separator between two widgets of the same color is drawn in the text color, so it never disappears.
 - Each entry must be one printable character (Nerd Font glyphs, box drawing, emoji...). Control and invisible characters are dropped, so a config file can't inject terminal escape sequences.
 

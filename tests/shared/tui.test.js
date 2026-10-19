@@ -65,7 +65,7 @@ function testStateCues() {
   const same = strip(renderFrame({ config: defaultConfig(), screen: "presets" }));
   record(
     "the preset matching the widgets is marked current, and its rows show the widget icons",
-    /Everyday\S* +● current/.test(presets) && /🤖 Model · 💾 Context Bar/.test(presets)
+    /Default\S* +● current/.test(presets) && /🤖 Model · 💾 Context Bar/.test(presets)
   );
   record(
     "the preview title says when it shows a preset, theme or layout that isn't applied",
@@ -258,7 +258,7 @@ function testWidthTiers() {
     /╮ ╭─ 🤖 Model ─/.test(wide) &&
       /The model in use\./.test(wide) &&
       /IN PRESETS/.test(wide) &&
-      /\ue0b6Everyday\ue0b4/.test(wide) &&
+      /\ue0b6Default\ue0b4/.test(wide) &&
       !/IN PRESETS/.test(narrow)
   );
 
@@ -343,7 +343,7 @@ function testScreenContent() {
   const presets = strip(renderFrame({ config: defaultConfig(), screen: "presets", cursor: 1 }));
   record(
     "presets screen previews the hovered preset",
-    /One line/.test(presets) && /Quota: 7d/.test(presets)
+    /Compact/.test(presets) && /Quota: 7d/.test(presets)
   );
 
   const ok = strip(renderFrame({ config: defaultConfig(), flash: "Saved" }));

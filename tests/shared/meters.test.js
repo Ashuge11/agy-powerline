@@ -11,6 +11,7 @@ const {
 const { METER_STYLES, METER_STYLE_IDS } = require("../../src/lib/widget-style");
 const { fillMeter } = require("../../src/lib/layouts/pills");
 const { renderDotMeter } = require("../../src/lib/layouts/lines");
+const { getActiveDepth, setActiveDepth } = require("../../src/lib/colors");
 const { visibleWidth } = require("../../src/lib/formatters");
 
 const METER_WIDGETS = [
@@ -79,12 +80,16 @@ async function run() {
       ) {
         linesWide.push(`${id}/${style}`);
       }
-      // The context meter has no pace marker.
-      if (id !== "context" && (pills.indexOf("┃") < 0 || lines.indexOf("┃") < 0)) {
+      // The context meter has no pace marker. A style may have its own
+      // marker glyph; the default ones (pips in Pills, dots in Lines) set the
+      // position every other style must match.
+      const mark = METER_STYLES[style]?.[2] ?? "┃";
+      const pillsMark = METER_STYLES.pips[2];
+      if (id !== "context" && (pills.indexOf(mark) < 0 || lines.indexOf(mark) < 0)) {
         markers.push(`${id}/${style}: no marker`);
       } else if (
-        pills.indexOf("┃") !== base.pills.indexOf("┃") ||
-        lines.indexOf("┃") !== base.lines.indexOf("┃")
+        pills.indexOf(mark) !== base.pills.indexOf(pillsMark) ||
+        lines.indexOf(mark) !== base.lines.indexOf("┃")
       ) {
         markers.push(`${id}/${style}`);
       }
@@ -114,6 +119,25 @@ async function run() {
     linesWide.join(", ")
   );
   record("the pace marker sits where it does with the default style", !markers.length, markers);
+
+  const previousDepth = getActiveDepth();
+  setActiveDepth("truecolor");
+  try {
+    // 50% filled, marker in cell 10: light dots, then dark ones, a larger light dot.
+    const pips = fillMeter(50, 12, [1, 1, 1], [2, 2, 2], [3, 3, 3], {
+      style: "pips",
+      elapsedPct: 75,
+    });
+    record(
+      "Pills' default meter is small dots in the fill and track colors, the marker a larger dot",
+      pips.startsWith(
+        "\x1b[38;2;1;1;1m••••••\x1b[38;2;2;2;2m•••\x1b[38;2;1;1;1m●\x1b[38;2;2;2;2m••"
+      ) && !/\x1b\[48;2;[12];/.test(pips),
+      pips.replace(/\x1b/g, "\\e")
+    );
+  } finally {
+    setActiveDepth(previousDepth);
+  }
 
   const blocks = stripAnsi(render({ id: "fiveHourBar", meter: "blocks" }));
   const geometric = stripAnsi(

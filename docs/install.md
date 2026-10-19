@@ -18,7 +18,7 @@ What `npx agy-powerline init` does, where files go, and how to set things up by 
 
 On a first install in a terminal (no `statusline.config.json` yet, no `--yes`), `init` asks three questions, each with a preview of the bar it gives:
 
-1. **Preset:** `default`, `compact`, `workspace`, `limits` or `full`. Enter keeps `default`.
+1. **Preset:** `default`, `compact`, `agent`, `git`, `tokens`, `quotas` or `full`. Enter keeps `default`.
 2. **Layout:** `pills` or `lines`. Enter keeps `pills`.
 3. **Terminal background:** dark, light or color-blind, then the themes for it (Enter keeps `dark-aurora`, `light-paper` or `colorblind-dark`).
 

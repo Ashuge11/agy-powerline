@@ -353,12 +353,17 @@ async function run() {
     powerline: { enabled: false },
     emojis: true,
     ascii: false,
+    // Flex Separators stretch the row to the full width, so the measured
+    // width must come out exactly at the terminal's.
     widgets: [
       { id: "model" },
+      { id: "separator" },
       { id: "fiveHourBar" },
       { id: "fiveHourReset" },
+      { id: "separator" },
       { id: "weeklyBar" },
       { id: "weeklyReset" },
+      { id: "separator" },
       { id: "ram" },
     ],
   };

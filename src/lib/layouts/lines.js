@@ -143,7 +143,7 @@ function renderDotMeter(
       : colorForUsedPct(pct, palette, options));
 
   const marker = paceIndex(options.elapsedPct, width);
-  const [full, blank] = METER_STYLES[options.style] || METER_STYLES.dots;
+  const [full, blank, pace] = METER_STYLES[options.style] || METER_STYLES.dots;
 
   if (marker < 0) {
     if (ascii) {
@@ -161,7 +161,7 @@ function renderDotMeter(
   let out = "";
   for (let i = 0; i < width; i++) {
     if (i === marker) {
-      out += undim + fg(markerColor) + paceGlyph(ascii);
+      out += undim + fg(markerColor) + ((!ascii && pace) || paceGlyph(ascii));
     } else if (i < filled) {
       out += undim + fg(color) + (ascii ? "#" : full);
     } else {

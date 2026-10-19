@@ -80,7 +80,7 @@ async function run() {
       "preset --list lists presets",
       listPresets.code === 0 &&
         /agy-powerline presets/i.test(listPresets.stdout) &&
-        ["default", "compact", "workspace", "limits", "full"].every((id) =>
+        ["default", "compact", "agent", "git", "tokens", "quotas", "full"].every((id) =>
           listPresets.stdout.includes(id)
         ),
       `exit ${listPresets.code}`
@@ -94,7 +94,7 @@ async function run() {
       setPreset.code === 0 &&
         cfg.widgets.some((w) => w.id === "quota") &&
         cfg.layout === layoutBefore &&
-        /Applied preset.*One line/i.test(setPreset.stdout),
+        /Applied preset.*Compact/i.test(setPreset.stdout),
       `exit ${setPreset.code}, layout ${layoutBefore} -> ${cfg.layout}`
     );
 

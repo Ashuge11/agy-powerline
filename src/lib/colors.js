@@ -91,21 +91,24 @@ function rgb(r, g, b) {
   return [r, g, b];
 }
 
+// The nearest xterm color: the 6x6x6 cube's levels (0, 95, 135, ... 255) are
+// not evenly spaced, and a near-gray reads better from the gray ramp, so both
+// candidates are measured and the closer one wins (as tmux does).
+const CUBE_LEVELS = [0, 95, 135, 175, 215, 255];
+
 function rgbToAnsi256([r, g, b]) {
-  if (r === g && g === b) {
-    if (r < 8) {
-      return 16;
-    }
+  const toCube = (v) => (v < 48 ? 0 : v < 115 ? 1 : Math.floor((v - 35) / 40));
+  const [cr, cg, cb] = [toCube(r), toCube(g), toCube(b)];
+  const cube = [CUBE_LEVELS[cr], CUBE_LEVELS[cg], CUBE_LEVELS[cb]];
 
-    if (r > 248) {
-      return 231;
-    }
+  const average = (r + g + b) / 3;
+  const grayIndex = average > 238 ? 23 : Math.max(0, Math.floor((average - 3) / 10));
+  const level = 8 + 10 * grayIndex;
+  const distance = ([x, y, z]) => (x - r) ** 2 + (y - g) ** 2 + (z - b) ** 2;
 
-    return Math.round(((r - 8) / 247) * 24) + 232;
-  }
-
-  const to6 = (v) => Math.round((v / 255) * 5);
-  return 16 + 36 * to6(r) + 6 * to6(g) + to6(b);
+  return distance([level, level, level]) < distance(cube)
+    ? 232 + grayIndex
+    : 16 + 36 * cr + 6 * cg + cb;
 }
 
 function colorSeq(kind, [r, g, b]) {

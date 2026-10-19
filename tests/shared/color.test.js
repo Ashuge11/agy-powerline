@@ -85,6 +85,14 @@ async function run() {
   );
   record("pure red maps to xterm 196", rgbToAnsi256([255, 0, 0]) === 196);
   record(
+    "256 colors pick the nearest cube level or gray: near-black text stays gray, not navy",
+    rgbToAnsi256([22, 22, 28]) === 234 &&
+      rgbToAnsi256([86, 156, 214]) === 74 &&
+      rgbToAnsi256([128, 128, 128]) === 244 &&
+      rgbToAnsi256([0, 0, 0]) === 16 &&
+      rgbToAnsi256([255, 255, 255]) === 231
+  );
+  record(
     "mergeConfig keeps ascii and color",
     (() => {
       const merged = mergeConfig({ ascii: true, color: "256" });

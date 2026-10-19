@@ -139,10 +139,12 @@ function widgetTag(id, { emojis = true, raw = false, icon } = {}) {
   return `${icon ?? tag.icon} ${tag.iconOnly ? "" : named}`;
 }
 
-// Meter styles: [filled, empty] glyphs. cells has none: Pills draws it with
-// background colors. Every glyph is one column wide for visibleWidth(); a
-// two-column glyph would overflow the meter and throw fitting off.
+// Meter styles: [filled, empty] glyphs, and a pace marker for a style that
+// has its own. cells has none: Pills draws it with background colors. Every
+// glyph is one column wide for visibleWidth(); a two-column glyph would
+// overflow the meter and throw fitting off.
 const METER_STYLES = {
+  pips: ["•", "•", "●"],
   cells: null,
   dots: ["●", "●"],
   blocks: ["█", "░"],
@@ -162,9 +164,9 @@ function isMeterStyle(value) {
 // The widget's "meter", else the global "meterStyle", else the layout's own;
 // cells exists only in Pills, so Lines draws dots instead.
 function meterStyle(widget, config, layout) {
-  const own = layout === "lines" ? "dots" : "cells";
+  const own = layout === "lines" ? "dots" : "pips";
   const id = [widget?.meter, config?.meterStyle].find(isMeterStyle) ?? own;
-  return id === "cells" ? own : id;
+  return id === "cells" && layout === "lines" ? own : id;
 }
 
 // Longest conversation title shown, in terminal columns.

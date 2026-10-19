@@ -60,13 +60,15 @@ Les modifications s’appliquent à une session `agy` en cours lors de l’actua
 
 Choisissez un préréglage comme point de départ, puis personnalisez-le :
 
-| Préréglage  | Informations affichées                                                                                    |
-| ----------- | --------------------------------------------------------------------------------------------------------- |
-| `default`   | Modèle, contexte et Git ; quotas sur 5h et 7d avec leurs réinitialisations sur une deuxième ligne         |
-| `compact`   | Une seule ligne : nom abrégé du modèle, quota le plus proche de sa limite, pourcentage du contexte et Git |
-| `workspace` | Projet, Git, état de l’agent et modèle ; contexte, quota le plus proche de sa limite et mode              |
-| `limits`    | Tous les quotas (5h, 7d, modèles tiers, Argon), un par ligne                                              |
-| `full`      | Toutes les informations : session, projet et Git ; contexte, tokens et cache ; les deux quotas            |
+| Préréglage | Informations affichées                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `default`  | Modèle, contexte et Git ; quotas sur 5h et 7d avec leurs réinitialisations sur une deuxième ligne                     |
+| `compact`  | Une seule ligne : nom abrégé du modèle, quota le plus proche de sa limite, pourcentage du contexte et Git             |
+| `agent`    | État de l’agent, sous-agents, titre, mode, sandbox ; modèle, contexte %, artefacts, quota le plus proche de sa limite |
+| `git`      | Projet, branche, worktree, stash ; nombre de fichiers, lignes modifiées, commit                                       |
+| `tokens`   | Tokens du contexte, tokens de la session en entrée et en sortie, cache ; tokens du jour et des 7 derniers jours       |
+| `quotas`   | Forfait et modèle ; tous les quotas (5h, 7d, modèles tiers, Argon), un par ligne                                      |
+| `full`     | Toutes les informations : session, projet et Git ; contexte, tokens et cache ; les deux quotas                        |
 
 ### Thèmes
 
