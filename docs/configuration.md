@@ -416,4 +416,10 @@ npx agy-powerline import my-bar.json
 
 **Narrow terminals**: the bar never runs past the `terminal_width` Antigravity reports. A row that is too wide first drops icons and labels (values only, as in [minimalist mode](#widget-options)), then shortens the model name (`3.8 Flash·High`) and the Lines meters (12 dots instead of 25), then hides its least important widgets one by one (custom text, version and cache counters first; the model and the 5h quota last), and as a last resort is cut with `…`. Widths count wide emojis and East Asian characters as two columns.
 
+The README's three-row Pills bar in a window under 80 columns wide, the flex space between widgets shrunk to fit:
+
+<p align="center">
+  <img src="../assets/screenshots/narrow.png" alt="agy-powerline's three-row Pills bar in a window under 80 columns wide: model, context, project and git; Gemini 5h and 7d quotas; Claude/GPT and Argon weekly quotas" width="640">
+</p>
+
 **Limited color support?** Color depth resolves per refresh, strongest hint first: `render --color <truecolor|256|none>`, then `NO_COLOR` (disables color), then `AGY_POWERLINE_COLOR`, then `"color"` in the config (`"auto"` default), then terminal heuristics (`COLORTERM=truecolor`/`24bit` → truecolor, `*256color*` `TERM` → 256-color `38;5`/`48;5` codes, `dumb` → no color). Bold/dim are kept; only fg/bg color is dropped in `none` mode, and Pills meters draw their fill with `█`/`░` (`#`/`-` in ASCII mode) instead of color.

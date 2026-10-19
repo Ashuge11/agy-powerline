@@ -40,6 +40,15 @@ agy                           # 启动 Antigravity
 
 `init` 在替换任何内容之前都会先询问，并会先备份 Antigravity 的 `settings.json`。运行 `init` 后需重启一次 `agy`。详情：[`init` 做了什么](docs/install.md)。
 
+<details>
+<summary>截图：真实 agy 会话中的状态栏（Windows Terminal）</summary>
+
+<p align="center">
+  <img src="assets/screenshots/windows.png" alt="Windows Terminal 中 agy 输入框下方的 agy-powerline：上方是一段简短对话，下方是三行的 Pills 状态栏" width="850">
+</p>
+
+</details>
+
 也可以让 agy 帮你安装：把下面这段话粘贴到 `agy` 会话中。
 
 ```text
@@ -86,18 +95,47 @@ Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then t
 **Pills**（默认）：powerline 风格的胶囊。可选圆角、尖角、斜角或平直形状，也可以在行与行之间留一个空行。
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline 的 Pills 布局，dark-ocean 主题：代理状态、模型、套餐、项目和 git；上下文；5h 和 7d 配额及重置时间" width="850">
-  <img src="assets/screenshots/pills-light.png" alt="agy-powerline 的 Pills 布局，浅色终端上的 light-sky 主题，行间留空" width="850">
+  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline 的 Pills 布局，dark-aurora 主题：模型、上下文、项目和 git；Gemini 5h 和 7d 配额，带进度标记和重置时间；Claude/GPT 和 Argon 每周配额" width="850">
 </p>
+
+<details>
+<summary>浅色终端</summary>
+
+<p align="center">
+  <img src="assets/screenshots/pills-light.png" alt="agy-powerline 的 Pills 布局，浅色终端上的 light-paper 主题" width="850">
+</p>
+
+</details>
 
 **Lines**：以纯彩色文本显示相同的信息。
 
 <p align="center">
-  <img src="assets/screenshots/lines-dark.png" alt="agy-powerline 的 Lines 布局，深色终端上的 dark-ocean 主题" width="850">
-  <img src="assets/screenshots/lines-light.png" alt="agy-powerline 的 Lines 布局，浅色终端上的 light-sky 主题" width="850">
+  <img src="assets/screenshots/lines-dark.png" alt="agy-powerline 的 Lines 布局，深色终端上的 dark-aurora 主题" width="850">
 </p>
 
+<details>
+<summary>浅色终端</summary>
+
+<p align="center">
+  <img src="assets/screenshots/lines-light.png" alt="agy-powerline 的 Lines 布局，浅色终端上的 light-paper 主题" width="850">
+</p>
+
+</details>
+
 **Classic**：用 `|` 分隔的纯彩色文本，进度条为方块，例如 `███░│░░░░░`。
+
+<p align="center">
+  <img src="assets/screenshots/classic-dark.png" alt="agy-powerline 的 Classic 布局，深色终端上的 dark-aurora 主题，方块进度条" width="850">
+</p>
+
+<details>
+<summary>浅色终端</summary>
+
+<p align="center">
+  <img src="assets/screenshots/classic-light.png" alt="agy-powerline 的 Classic 布局，浅色终端上的 light-paper 主题" width="850">
+</p>
+
+</details>
 
 ## 组件
 

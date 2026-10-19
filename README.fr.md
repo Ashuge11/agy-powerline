@@ -40,6 +40,15 @@ agy                           # start Antigravity
 
 Avant de remplacer quoi que ce soit, `init` demande confirmation et sauvegarde le fichier `settings.json` d’Antigravity. Redémarrez `agy` une fois après l’exécution de `init`. Pour en savoir plus, consultez [le fonctionnement de `init`](docs/install.md).
 
+<details>
+<summary>Capture : la barre dans une vraie session agy (Windows Terminal)</summary>
+
+<p align="center">
+  <img src="assets/screenshots/windows.png" alt="agy-powerline sous la zone de saisie d’agy dans Windows Terminal : une courte conversation au-dessus, la barre Pills sur trois lignes en dessous" width="850">
+</p>
+
+</details>
+
 Vous pouvez aussi laisser agy effectuer l’installation : collez cette instruction dans une session `agy`.
 
 ```text
@@ -86,18 +95,47 @@ Prévisualisez tous les thèmes avec `npx agy-powerline theme --gallery`.
 **Pills** (par défaut) : capsules de style powerline. Choisissez des formes arrondies, anguleuses, inclinées ou plates, et ajoutez éventuellement une ligne vide entre les lignes de la barre.
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="Disposition Pills d’agy-powerline avec le thème dark-ocean : état de l’agent, modèle, plan, projet et Git ; contexte ; quotas sur 5h et 7d avec leurs réinitialisations" width="850">
-  <img src="assets/screenshots/pills-light.png" alt="Disposition Pills d’agy-powerline avec le thème light-sky sur un terminal clair et un espace entre les lignes" width="850">
+  <img src="assets/screenshots/pills-dark.png" alt="Disposition Pills d’agy-powerline avec le thème dark-aurora : modèle, contexte, projet et Git ; quotas Gemini sur 5h et 7d avec marqueurs de rythme et réinitialisations ; quotas hebdomadaires Claude/GPT et Argon" width="850">
 </p>
+
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/pills-light.png" alt="Disposition Pills d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
 
 **Lines** : les mêmes informations sous forme de texte coloré classique.
 
 <p align="center">
-  <img src="assets/screenshots/lines-dark.png" alt="Disposition Lines d’agy-powerline avec le thème dark-ocean sur un terminal sombre" width="850">
-  <img src="assets/screenshots/lines-light.png" alt="Disposition Lines d’agy-powerline avec le thème light-sky sur un terminal clair" width="850">
+  <img src="assets/screenshots/lines-dark.png" alt="Disposition Lines d’agy-powerline avec le thème dark-aurora sur un terminal sombre" width="850">
 </p>
 
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/lines-light.png" alt="Disposition Lines d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
+
 **Classic** : du texte coloré séparé par des `|`, avec des jauges en blocs, comme `███░│░░░░░`.
+
+<p align="center">
+  <img src="assets/screenshots/classic-dark.png" alt="Disposition Classic d’agy-powerline avec le thème dark-aurora sur un terminal sombre, avec des jauges en blocs" width="850">
+</p>
+
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/classic-light.png" alt="Disposition Classic d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
 
 ## Widgets
 

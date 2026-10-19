@@ -38,6 +38,15 @@ agy                           # start Antigravity
 
 On a first install `init` asks for a preset, a layout and a theme, with a preview of each; add `--yes` to skip the questions. It asks before replacing anything and backs up Antigravity's `settings.json` first. Restart `agy` once after `init`. Details: [what `init` does](docs/install.md).
 
+<details>
+<summary>Screenshot: the bar in a real agy session (Windows Terminal)</summary>
+
+<p align="center">
+  <img src="assets/screenshots/windows.png" alt="agy-powerline under agy's input box in Windows Terminal: a short conversation above, the three-row Pills bar below" width="850">
+</p>
+
+</details>
+
 ### Install from inside agy
 
 agy-powerline is also an agy plugin. Add it, then run its setup skill in an `agy` session; it runs `init` and `doctor` for you:
@@ -97,18 +106,47 @@ Preview them all in the [theme gallery](https://agy-powerline.com/) or with `npx
 **Pills** (default): powerline-style capsules. Choose round, angled, slanted or flat shapes, and optionally a blank line between rows.
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline Pills layout with the dark-ocean theme: agent state, model, plan, project and git; context; 5h and 7d quotas with resets" width="850">
-  <img src="assets/screenshots/pills-light.png" alt="agy-powerline Pills layout with the light-sky theme on a light terminal, with space between rows" width="850">
+  <img src="assets/screenshots/pills-dark.png" alt="agy-powerline Pills layout with the dark-aurora theme: model, context, project and git; Gemini 5h and 7d quotas with pace markers and resets; Claude/GPT and Argon weekly quotas" width="850">
 </p>
+
+<details>
+<summary>On a light terminal</summary>
+
+<p align="center">
+  <img src="assets/screenshots/pills-light.png" alt="agy-powerline Pills layout with the light-paper theme on a light terminal" width="850">
+</p>
+
+</details>
 
 **Lines**: the same information as plain colored text.
 
 <p align="center">
-  <img src="assets/screenshots/lines-dark.png" alt="agy-powerline Lines layout with the dark-ocean theme on a dark terminal" width="850">
-  <img src="assets/screenshots/lines-light.png" alt="agy-powerline Lines layout with the light-sky theme on a light terminal" width="850">
+  <img src="assets/screenshots/lines-dark.png" alt="agy-powerline Lines layout with the dark-aurora theme on a dark terminal" width="850">
 </p>
 
+<details>
+<summary>On a light terminal</summary>
+
+<p align="center">
+  <img src="assets/screenshots/lines-light.png" alt="agy-powerline Lines layout with the light-paper theme on a light terminal" width="850">
+</p>
+
+</details>
+
 **Classic**: plain colored text with `|` dividers and block meters, like `███░│░░░░░`.
+
+<p align="center">
+  <img src="assets/screenshots/classic-dark.png" alt="agy-powerline Classic layout with the dark-aurora theme on a dark terminal, with block meters" width="850">
+</p>
+
+<details>
+<summary>On a light terminal</summary>
+
+<p align="center">
+  <img src="assets/screenshots/classic-light.png" alt="agy-powerline Classic layout with the light-paper theme on a light terminal" width="850">
+</p>
+
+</details>
 
 ## Widgets
 

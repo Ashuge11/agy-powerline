@@ -40,6 +40,15 @@ agy                           # Antigravity を起動
 
 `init` は何かを置き換える前に確認し、先に Antigravity の `settings.json` をバックアップします。`init` の後に `agy` を一度再起動してください。詳細：[`init` が行うこと](docs/install.md)。
 
+<details>
+<summary>スクリーンショット：実際の agy セッションでのバー（Windows Terminal）</summary>
+
+<p align="center">
+  <img src="assets/screenshots/windows.png" alt="Windows Terminal で agy の入力欄の下に表示された agy-powerline：上に短い会話、下に 3 行の Pills バー" width="850">
+</p>
+
+</details>
+
 agy にインストールしてもらうこともできます。次の文を `agy` のセッションに貼り付けてください。
 
 ```text
@@ -86,18 +95,47 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
 **Pills**（デフォルト）：powerline 風のカプセル。形は丸型、山型、斜め、フラットから選べ、行の間に空行を入れることもできます。
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="dark-ocean テーマの agy-powerline Pills レイアウト：エージェントの状態、モデル、プラン、プロジェクト、git；コンテキスト；5h と 7d のクォータとリセットまでの時間" width="850">
-  <img src="assets/screenshots/pills-light.png" alt="明るいターミナルでの light-sky テーマの agy-powerline Pills レイアウト、行間あり" width="850">
+  <img src="assets/screenshots/pills-dark.png" alt="dark-aurora テーマの agy-powerline Pills レイアウト：モデル、コンテキスト、プロジェクト、git；ペースマーカーとリセットまでの時間付きの Gemini 5h と 7d のクォータ；Claude/GPT と Argon の週間クォータ" width="850">
 </p>
+
+<details>
+<summary>明るいターミナルの場合</summary>
+
+<p align="center">
+  <img src="assets/screenshots/pills-light.png" alt="明るいターミナルでの light-paper テーマの agy-powerline Pills レイアウト" width="850">
+</p>
+
+</details>
 
 **Lines**：同じ情報を色付きのプレーンテキストで表示します。
 
 <p align="center">
-  <img src="assets/screenshots/lines-dark.png" alt="暗いターミナルでの dark-ocean テーマの agy-powerline Lines レイアウト" width="850">
-  <img src="assets/screenshots/lines-light.png" alt="明るいターミナルでの light-sky テーマの agy-powerline Lines レイアウト" width="850">
+  <img src="assets/screenshots/lines-dark.png" alt="暗いターミナルでの dark-aurora テーマの agy-powerline Lines レイアウト" width="850">
 </p>
 
+<details>
+<summary>明るいターミナルの場合</summary>
+
+<p align="center">
+  <img src="assets/screenshots/lines-light.png" alt="明るいターミナルでの light-paper テーマの agy-powerline Lines レイアウト" width="850">
+</p>
+
+</details>
+
 **Classic**：`|` で区切ったプレーンな色付きテキストと、ブロックメーター（例：`███░│░░░░░`）。
+
+<p align="center">
+  <img src="assets/screenshots/classic-dark.png" alt="暗いターミナルでの dark-aurora テーマの agy-powerline Classic レイアウト、ブロックメーター付き" width="850">
+</p>
+
+<details>
+<summary>明るいターミナルの場合</summary>
+
+<p align="center">
+  <img src="assets/screenshots/classic-light.png" alt="明るいターミナルでの light-paper テーマの agy-powerline Classic レイアウト" width="850">
+</p>
+
+</details>
 
 ## ウィジェット
 
