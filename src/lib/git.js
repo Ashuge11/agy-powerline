@@ -13,6 +13,15 @@ const SYNC_CACHE_NAME = ".git-sync-cache.json";
 const SYNC_CACHE_MAX = 20;
 const COMMIT = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 
+// A git call that runs past its time is skipped until a later refresh. Tests
+// give git more time: on a busy CI machine a plain call can take longer.
+const timeouts = { sync: 150, detail: 300 };
+function setGitTimeouts(next) {
+  const previous = { ...timeouts };
+  Object.assign(timeouts, next);
+  return previous;
+}
+
 // Only an absolute folder that exists can belong to the user's session. A
 // relative path (a Windows path read on Linux, for one) resolves against
 // wherever this process runs, and the upward walk would then report that
@@ -392,7 +401,7 @@ function getGitSync(gitDir, branch) {
       ["rev-list", "--left-right", "--count", `${branch}...${branch}@{upstream}`, "--"],
       {
         cwd: path.dirname(gitDir),
-        timeout: 150,
+        timeout: timeouts.sync,
         stdio: ["ignore", "pipe", "ignore"],
         encoding: "utf8",
         // Antigravity may run the statusline without a console; without this,
@@ -414,7 +423,7 @@ function getGitSync(gitDir, branch) {
     // A timeout or missing git is worth knowing about when ahead/behind
     // counts never show.
     if (err.code === "ETIMEDOUT" || err.signal === "SIGTERM") {
-      logWarning("GIT_TIMEOUT", { timeoutMs: 150 });
+      logWarning("GIT_TIMEOUT", { timeoutMs: timeouts.sync });
     } else if (err.code === "ENOENT") {
       logWarning("GIT_NOT_FOUND");
     }
@@ -437,7 +446,6 @@ const DETAIL_NEEDS = {
 const STATUS_CACHE_NAME = ".git-status-cache.json";
 const STATUS_CACHE_MAX = 20;
 const STATUS_TTL_MS = 5000;
-const DETAIL_TIMEOUT_MS = 300;
 
 // No optional locks: the bar must never hold the index lock and make the
 // user's own git commands fail. The -c flags and the submodule skip keep git
@@ -559,7 +567,7 @@ function runGitDetail(cwd, args) {
     const { execFileSync } = require("child_process");
     return execFileSync("git", args, {
       cwd,
-      timeout: DETAIL_TIMEOUT_MS,
+      timeout: timeouts.detail,
       stdio: ["ignore", "pipe", "ignore"],
       encoding: "utf8",
       maxBuffer: 16 * 1024 * 1024,
@@ -567,7 +575,7 @@ function runGitDetail(cwd, args) {
     });
   } catch (err) {
     if (err.code === "ETIMEDOUT" || err.signal === "SIGTERM") {
-      logWarning("GIT_TIMEOUT", { timeoutMs: DETAIL_TIMEOUT_MS });
+      logWarning("GIT_TIMEOUT", { timeoutMs: timeouts.detail });
     } else if (err.code === "ENOENT") {
       logWarning("GIT_NOT_FOUND");
     }
@@ -767,4 +775,5 @@ module.exports = {
   getGitDetails,
   resolveGitDetails,
   clearGitDetailsCache,
+  setGitTimeouts,
 };

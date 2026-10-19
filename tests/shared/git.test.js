@@ -12,6 +12,7 @@ const {
   STATUS_CACHE_NAME,
   clearGitDetailsCache,
   hasRiskyRepoConfig,
+  setGitTimeouts,
 } = require("../../src/lib/git");
 
 const strip = (text) => text.replace(/\x1b\[[0-9;]*m/g, "");
@@ -412,6 +413,9 @@ async function run() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "agy-git-"));
   const env = gitEnv(root);
   const git = makeGit(env);
+  // These tests check what git reports, not how fast it answers: a busy
+  // Windows runner sometimes needs more than the bar's 150 ms.
+  const previousTimeouts = setGitTimeouts({ sync: 5000, detail: 5000 });
 
   try {
     // remote.git <- work (2 commits ahead), other pushes 1 commit work lacks.
@@ -558,6 +562,7 @@ async function run() {
   } catch (err) {
     record("git suite ran without errors", false, String(err.stderr || err.message));
   } finally {
+    setGitTimeouts(previousTimeouts);
     fs.rmSync(root, { recursive: true, force: true });
   }
 }
