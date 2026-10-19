@@ -417,6 +417,7 @@ function previewParts(width) {
   // The toggle keys work on the widget list, so only that screen names them.
   const key = (letter) => (screen === "main" ? letter : "");
   const chips = [
+    ui.chip("gaps", preview.rowGap, key("v")),
     ui.chip("emojis", preview.emojis, key("e")),
     ui.chip("minimal", preview.minimalist, key("m")),
     ui.chip("pace", preview.pacing, key("r")),
@@ -424,10 +425,7 @@ function previewParts(width) {
     ui.chip("ascii", preview.ascii, key("i")),
   ];
   if (preview.layout === "pills") {
-    chips.unshift(
-      ui.chip("joins", preview.powerline.enabled, key("j")),
-      ui.chip("gaps", preview.rowGap, key("v"))
-    );
+    chips.unshift(ui.chip("joins", preview.powerline.enabled, key("j")));
   }
 
   return { title, bar: String(rendered).split("\n"), chips: chips.join("   ") };
@@ -1227,7 +1225,7 @@ const POWERLINE_HELP = {
   enabled:
     "On: adjacent widgets share one pill, with a separator between them. Off: every widget gets its own pill.",
   rowGap:
-    "Puts a blank line between Pills rows, so stacked pills don't touch. The bar takes more lines (three rows become five).",
+    "Puts a blank line between rows, in every layout, so stacked pills don't touch and text rows get more air. The bar takes more lines (three rows become five).",
   style: "Sets start caps, end caps and separators in one go. Enter cycles the styles.",
   separators: "Glyphs between widgets of a pill. With several, they cycle per join, left to right.",
   startCaps: "Glyphs that open each pill. With several, they cycle per pill, left to right.",
@@ -1256,7 +1254,7 @@ function powerlineDetails(row) {
 function drawPowerline() {
   const items = POWERLINE_ROWS.map((row) => ({ text: row.label, value: powerlineRowValue(row) }));
   const notes =
-    config.layout === "lines"
+    config.layout !== "pills"
       ? ["Powerline shapes apply to Pills. Switch layout with l."]
       : [
           "A style sets caps and separators together; edit a list to fine-tune it.",
@@ -1341,10 +1339,24 @@ function drawGlyphs() {
   });
 }
 
+// Three short paragraphs per layout, each under 90 columns so a wide panel
+// shows them unwrapped.
 const LAYOUT_HELP = {
-  pills: "Widgets sit in colored pills. The Powerline tab sets their caps, separators and joins.",
-  lines:
-    "Colored text on the terminal background, with dividers and dot meters. Powerline shapes don't apply.",
+  pills: [
+    "Widgets sit in colored pills, joined by powerline caps and separators.",
+    "Meters draw as small dots on the pill's color, with a larger dot as the pace marker.",
+    "The Powerline tab sets the caps, separators, joins and the space between rows.",
+  ],
+  lines: [
+    "Colored text on the terminal background, with thin │ dividers between widgets.",
+    "Meters draw as dots in the ok, caution or danger color, over a dim track.",
+    "Powerline shapes don't apply; the theme, widgets and space between rows do.",
+  ],
+  classic: [
+    "Colored text on the terminal background, with | dividers between widgets.",
+    "Meters draw as blocks in one color: █ filled, ░ empty and │ as the pace marker.",
+    "Powerline shapes don't apply; the theme, widgets and space between rows do.",
+  ],
 };
 
 function drawLayout() {
@@ -1358,10 +1370,9 @@ function drawLayout() {
   return screenFrame({
     title: "Layout",
     items,
-    notes: ["Both layouts use your widgets and theme; Powerline shapes apply to Pills."],
     details: hovered && {
       title: hovered.name,
-      lines: [`${hovered.description}.`, "", LAYOUT_HELP[hovered.id] ?? ""],
+      lines: LAYOUT_HELP[hovered.id].flatMap((line, i) => (i ? ["", line] : [line])),
     },
     keys: [
       [ui.glyph.upDown, "preview"],

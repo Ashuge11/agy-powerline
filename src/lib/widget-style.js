@@ -154,6 +154,8 @@ const METER_STYLES = {
   squares: ["■", "□"],
   braille: ["⣿", "⣀"],
   bars: ["▮", "▯"],
+  rings: ["●", "○"],
+  ramp: ["█", "░"],
 };
 const METER_STYLE_IDS = Object.keys(METER_STYLES);
 
@@ -162,11 +164,13 @@ function isMeterStyle(value) {
 }
 
 // The widget's "meter", else the global "meterStyle", else the layout's own;
-// cells exists only in Pills, so Lines draws dots instead.
+// cells exists only in Pills, so the text layouts draw their own instead.
+const OWN_METER = { pills: "pips", lines: "dots", classic: "blocks" };
+
 function meterStyle(widget, config, layout) {
-  const own = layout === "lines" ? "dots" : "pips";
+  const own = OWN_METER[layout] ?? OWN_METER.pills;
   const id = [widget?.meter, config?.meterStyle].find(isMeterStyle) ?? own;
-  return id === "cells" && layout === "lines" ? own : id;
+  return id === "cells" && layout !== "pills" ? own : id;
 }
 
 // Longest conversation title shown, in terminal columns.

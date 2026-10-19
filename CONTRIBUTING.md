@@ -273,7 +273,7 @@ Every change must keep the bar cross-platform and fast:
 
 4. **Visual Check:**
    - `npm run gallery` writes `gallery.html` with every theme rendered on dark and light terminals, plus a color-blindness simulation. Open it in a browser.
-   - `npm run screenshots` writes one SVG per theme to `screenshots/`, with the pills and lines layouts on the theme's terminal background.
+   - `npm run screenshots` writes one SVG per theme to `screenshots/`, with every layout on the theme's terminal background.
    - CI builds both for every pull request: open the run's Summary page and download the `theme-preview` artifact.
 
 5. **Zero Runtime Dependencies:**

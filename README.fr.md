@@ -25,7 +25,7 @@
 Consultez d’un coup d’œil le modèle utilisé, les quotas Gemini sur 5h/7d, ceux de Claude/GPT et d’Argon, la fenêtre de contexte, la branche Git et bien plus encore. Choisissez les widgets, les thèmes et la disposition dans un éditeur interactif. Une seule commande suffit pour l’installation, sans aucune dépendance.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="configure d’agy-powerline : ajout du quota hebdomadaire d’Argon en tapant argon, passage au thème Dark Metro, puis de la disposition Pills à Lines, avec un aperçu en direct de la barre" width="850">
+  <img src="assets/demo.gif" alt="configure d’agy-powerline : ajout du quota hebdomadaire d’Argon en tapant argon, puis parcours des préréglages, des thèmes et des dispositions avec un aperçu en direct de la barre, et ouverture de l’onglet Powerline" width="850">
 </p>
 
 ## Installation
@@ -67,7 +67,7 @@ Choisissez un préréglage comme point de départ, puis personnalisez-le :
 | `agent`    | État de l’agent, sous-agents, titre, mode, sandbox ; modèle, contexte %, artefacts, quota le plus proche de sa limite |
 | `git`      | Projet, branche, worktree, stash ; nombre de fichiers, lignes modifiées, commit                                       |
 | `tokens`   | Tokens du contexte, tokens de la session en entrée et en sortie, cache ; tokens du jour et des 7 derniers jours       |
-| `quotas`   | Forfait et modèle ; tous les quotas (5h, 7d, modèles tiers, Argon), un par ligne                                      |
+| `quotas`   | Forfait et modèle ; quotas sur 5h et 7d côte à côte ; modèles tiers et Argon sur une troisième ligne                  |
 | `full`     | Toutes les informations : session, projet et Git ; contexte, tokens et cache ; les deux quotas                        |
 
 ### Thèmes
@@ -97,6 +97,8 @@ Prévisualisez tous les thèmes avec `npx agy-powerline theme --gallery`.
   <img src="assets/screenshots/lines-light.png" alt="Disposition Lines d’agy-powerline avec le thème light-sky sur un terminal clair" width="850">
 </p>
 
+**Classic** : du texte coloré séparé par des `|`, avec des jauges en blocs, comme `███░│░░░░░`.
+
 ## Widgets
 
 | Widget                                                        | Informations affichées                                                                                               |
@@ -125,21 +127,21 @@ Un widget qui n’a rien à afficher se masque automatiquement. Vous pouvez pers
 
 ## Commandes
 
-| Commande                                  | Fonction                                                               |
-| ----------------------------------------- | ---------------------------------------------------------------------- |
-| `npx agy-powerline init [--yes]`          | Installer ou mettre à jour la barre d’état                             |
-| `npx agy-powerline configure`             | Ouvrir l’éditeur (alias `config`)                                      |
-| `npx agy-powerline preset <name>`         | Appliquer un préréglage (`--list` pour afficher la liste)              |
-| `npx agy-powerline theme <name>`          | Changer de thème (`--list`, `--gallery`)                               |
-| `npx agy-powerline gradient <name>`       | Color each row with a gradient (`--list`, `off`)                       |
-| `npx agy-powerline layout <pills\|lines>` | Changer de disposition                                                 |
-| `npx agy-powerline caps <style>`          | Changer la forme des capsules : `round`, `angled`, `slanted`, `flat`   |
-| `npx agy-powerline export [file]`         | Save your config to a file, to back it up or share it                  |
-| `npx agy-powerline import <file>`         | Load a config, after showing what changes (`--merge`)                  |
-| `npx agy-powerline doctor`                | Vérifier l’installation et expliquer les éventuels problèmes           |
-| `npx agy-powerline report`                | Générer un rapport de bogue respectueux de la vie privée               |
-| `npx agy-powerline uninstall [--delete]`  | Retirer la barre d’état d’agy (`--delete` supprime aussi ses fichiers) |
-| `npx agy-powerline render --demo`         | Afficher la barre avec des données d’exemple                           |
+| Commande                                           | Fonction                                                               |
+| -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npx agy-powerline init [--yes]`                   | Installer ou mettre à jour la barre d’état                             |
+| `npx agy-powerline configure`                      | Ouvrir l’éditeur (alias `config`)                                      |
+| `npx agy-powerline preset <name>`                  | Appliquer un préréglage (`--list` pour afficher la liste)              |
+| `npx agy-powerline theme <name>`                   | Changer de thème (`--list`, `--gallery`)                               |
+| `npx agy-powerline gradient <name>`                | Color each row with a gradient (`--list`, `off`)                       |
+| `npx agy-powerline layout <pills\|lines\|classic>` | Changer de disposition                                                 |
+| `npx agy-powerline caps <style>`                   | Changer la forme des capsules : `round`, `angled`, `slanted`, `flat`   |
+| `npx agy-powerline export [file]`                  | Save your config to a file, to back it up or share it                  |
+| `npx agy-powerline import <file>`                  | Load a config, after showing what changes (`--merge`)                  |
+| `npx agy-powerline doctor`                         | Vérifier l’installation et expliquer les éventuels problèmes           |
+| `npx agy-powerline report`                         | Générer un rapport de bogue respectueux de la vie privée               |
+| `npx agy-powerline uninstall [--delete]`           | Retirer la barre d’état d’agy (`--delete` supprime aussi ses fichiers) |
+| `npx agy-powerline render --demo`                  | Afficher la barre avec des données d’exemple                           |
 
 Utilisez l’option `--help` avec n’importe quelle commande pour afficher les options disponibles.
 

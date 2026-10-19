@@ -93,6 +93,18 @@ function cases() {
     { color: "none", ascii: true },
   ]);
   list.push(["lines · 256 colors", { ...base, layout: "lines" }, { color: "256" }]);
+  list.push(["classic · dark-aurora", { ...base, layout: "classic" }, { color: "truecolor" }]);
+  list.push([
+    "lines · meter ramp",
+    { ...base, layout: "lines", meterStyle: "ramp" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "classic · meter rings",
+    { ...base, layout: "classic", meterStyle: "rings" },
+    { color: "truecolor" },
+  ]);
+  list.push(["classic · ascii", { ...base, layout: "classic" }, { color: "none", ascii: true }]);
   list.push([
     "pills default · gradient sunset",
     { ...base, layout: "pills", gradient: "sunset" },

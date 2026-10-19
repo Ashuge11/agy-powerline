@@ -13,6 +13,7 @@ const outDir = path.resolve(process.argv[2] || path.join(repo, "screenshots"));
 
 const { renderStatusline, sampleData, defaultConfig } = require(path.join(repo, "src/lib/shared"));
 const { THEMES, THEME_ORDER } = require(path.join(repo, "src/lib/themes"));
+const { LAYOUT_ORDER } = require(path.join(repo, "src/lib/config"));
 const { charWidth } = require(path.join(repo, "src/lib/formatters"));
 const { ansiRuns } = require("../site/ansi");
 
@@ -150,7 +151,7 @@ function screenshot(id) {
 
   const parts = [];
   let y = PAD;
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     parts.push(
       `<text x="${PAD}" y="${y + 14}" font-size="11" fill="${rgb(term.fg)}" opacity="0.7">${layout}</text>`
     );

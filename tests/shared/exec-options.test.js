@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const { record, PAYLOAD } = require("../helpers");
 const { renderStatusline, defaultConfig, clearExecCache } = require("../../src/lib/shared");
 const {
@@ -58,7 +59,7 @@ function checkPayload() {
   );
   record("an unusable payload becomes an empty object", execPayloadJson(undefined) === "{}");
 
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const out = render(
       [
         {

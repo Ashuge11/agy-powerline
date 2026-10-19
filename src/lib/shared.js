@@ -139,7 +139,8 @@ function renderBar(data, config, overrides) {
 }
 
 function renderLayout(session, config, emojis, ascii, colors) {
-  if (config.layout === "lines") {
+  // Classic is Lines with block meters and | dividers.
+  if (config.layout === "lines" || config.layout === "classic") {
     return renderLinesLayout(session, emojis, ascii, colors, config);
   }
 

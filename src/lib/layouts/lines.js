@@ -3,6 +3,7 @@
 const {
   rgb,
   fg,
+  mix,
   RESET,
   DIM,
   BOLD,
@@ -144,26 +145,40 @@ function renderDotMeter(
 
   const marker = paceIndex(options.elapsedPct, width);
   const [full, blank, pace] = METER_STYLES[options.style] || METER_STYLES.dots;
+  // A Classic meter is one color: the empty glyph's own texture (░) sets it
+  // apart, and the pace marker is a thin line.
+  const classic = options.classic === true;
+  const track = palette.track || rgb(60, 65, 75);
+  // ramp shades each filled cell by its place, from the theme's ok color to
+  // caution to danger, over the track; rings keeps the fill's color, faded.
+  const ramp = options.style === "ramp";
+  const trackColor = ramp
+    ? track
+    : options.style === "rings"
+      ? mix(color, track, 0.5)
+      : classic
+        ? color
+        : track;
+  const fillColor = (i) => (ramp ? rampColor(width > 1 ? i / (width - 1) : 0, palette) : color);
+  const markerColor = palette.text || LINES.white;
 
-  if (marker < 0) {
+  if (marker < 0 && !ramp) {
     if (ascii) {
       return fg(color) + "#".repeat(filled) + DIM + "-".repeat(empty) + RESET;
     }
-    const trackColor = palette.track || rgb(60, 65, 75);
     return fg(color) + full.repeat(filled) + fg(trackColor) + blank.repeat(empty) + RESET;
   }
 
   // The marker replaces the dot where the quota window currently is.
-  const trackColor = palette.track || rgb(60, 65, 75);
-  const markerColor = palette.text || LINES.white;
+  const markGlyph = ascii ? paceGlyph(true) : classic ? "│" : pace || paceGlyph(false);
   // ASCII empties are dim; NORMAL ends that without dropping a blink.
   const undim = ascii ? NORMAL : "";
   let out = "";
   for (let i = 0; i < width; i++) {
     if (i === marker) {
-      out += undim + fg(markerColor) + ((!ascii && pace) || paceGlyph(ascii));
+      out += undim + fg(markerColor) + markGlyph;
     } else if (i < filled) {
-      out += undim + fg(color) + (ascii ? "#" : full);
+      out += undim + fg(fillColor(i)) + (ascii ? "#" : full);
     } else {
       out += ascii ? DIM + "-" : fg(trackColor) + blank;
     }
@@ -171,16 +186,27 @@ function renderDotMeter(
   return out + RESET;
 }
 
+// A point along the meter, 0 to 1, as a color between ok, caution and danger.
+function rampColor(at, palette) {
+  const ok = palette.quotaLow || LINES.green;
+  const caution = palette.quotaHigh || LINES.yellow;
+  const danger = palette.quotaCrit || LINES.red;
+  return at <= 0.5 ? mix(ok, caution, at * 2) : mix(caution, danger, (at - 0.5) * 2);
+}
+
 function buildLinesSegment(id, session, palette, emojis, ascii = false, widget = {}, config = {}) {
   // Raw widgets keep only their value: no icon, no label.
   const raw = isRaw(widget, config);
   const tag = (icon) => widgetTag(id, { emojis, raw, icon });
-  // Meters: 25 dots, or 12 when the bar is fitted to a narrow terminal.
+  // Meters: 25 cells, or 12 when the bar is fitted to a narrow terminal;
+  // Classic draws the same cells as blocks.
+  const classic = config.layout === "classic";
   const dots = widget?.compact ? 12 : 25;
-  const style = meterStyle(widget, config, "lines");
+  const style = meterStyle(widget, config, classic ? "classic" : "lines");
   const pace = (quota, thresh) => ({
     ...thresh,
     style,
+    classic,
     elapsedPct: isPaced(widget, config) ? quota.elapsedPct : null,
   });
   const over200k = session.exceeds200k ? " >200k" : "";
@@ -328,6 +354,7 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
           ...thresh,
           color,
           style,
+          classic,
         }) +
         " " +
         fg(color) +
@@ -707,7 +734,7 @@ function renderLinesLayout(session, emojis, ascii = false, colors, config) {
     return RESET;
   }
 
-  const pipe = ` ${DIM}${ascii ? "|" : "│"}${RESET} `;
+  const pipe = ` ${DIM}${ascii || config.layout === "classic" ? "|" : "│"}${RESET} `;
 
   return (
     rows
@@ -715,7 +742,8 @@ function renderLinesLayout(session, emojis, ascii = false, colors, config) {
         const parts = groups.map((group) => group.join(pipe));
         return joinFlex(parts, session.terminalWidth);
       })
-      .join("\n") + RESET
+      // rowGap: a line holding a space, as in Pills, so a host keeps it.
+      .join(config.rowGap === true ? "\n \n" : "\n") + RESET
   );
 }
 

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `rings` meter style (`●●●○○○`) and `ramp` meter style (`███░░░`, each filled cell shaded from the theme's ok color through caution to danger); pick them with `"meterStyle"` or per widget in `configure`
+- `classic` layout: plain colored text with `|` dividers and block meters (`███░│░░░░░`); `npx agy-powerline layout classic` or `l` in `configure`
 - CodeQL static code analysis workflow (`.github/workflows/codeql.yml`)
 - README badges for the live web configurator, GitHub stars, CodeQL, and OS platform logos
 - Star History chart in READMEs
@@ -17,11 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Space between rows (`"rowGap"`, `v` in `configure`) works in every layout, not only Pills
 - Pills draw meters as small dots (`pips`), with a larger dot as the pace marker, instead of solid colored blocks; `"meterStyle": "cells"` keeps the blocks, and ASCII mode keeps them too
 - The setup and customize skills run commands from the plugin's own copy when npx can't reach npm (#123)
 - `configure` → Themes shows a theme's palette in two columns with space between the pills
 - Presets are named after what they show: Default, Compact, Agent activity, Git focus, Token usage, Quota watch and Everything
-- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, with plan and model on its first row; `preset workspace` and `preset limits` no longer work
+- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, in three rows: plan and model, then the 5h and 7d quotas side by side, then third-party and Argon; `preset workspace` and `preset limits` no longer work
 
 ### Fixed
 

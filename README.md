@@ -23,7 +23,7 @@
 See your model, Gemini 5h/7d, Claude/GPT and Argon quotas, context window, git branch and more at a glance. Pick widgets, themes and layout from an interactive editor. One command to install, no dependencies.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="agy-powerline configure: add Argon's weekly quota by typing argon, switch to the Dark Metro theme, then from the Pills to the Lines layout, with a live preview of the bar" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline configure: add Argon's weekly quota by typing argon, then browse the presets, themes and layouts with a live preview of the bar, and open the Powerline tab" width="850">
 </p>
 
 ## Install
@@ -78,7 +78,7 @@ Start from a preset, then adjust:
 | `agent`   | Agent state, subagents, title, mode, sandbox; model, context %, artifacts, tightest quota |
 | `git`     | Project, branch, worktree, stash; file counts, line changes, commit                       |
 | `tokens`  | Context tokens, session tokens in/out, cache hit; tokens today and over 7 days            |
-| `quotas`  | Plan and model; every quota (5h, 7d, third-party, Argon), one per row                     |
+| `quotas`  | Plan and model; 5h and 7d quotas side by side; third-party and Argon on a third row       |
 | `full`    | Everything: session, project and git; context, tokens and cache; both quotas              |
 
 ### Themes
@@ -108,6 +108,8 @@ Preview them all in the [theme gallery](https://agy-powerline.com/) or with `npx
   <img src="assets/screenshots/lines-light.png" alt="agy-powerline Lines layout with the light-sky theme on a light terminal" width="850">
 </p>
 
+**Classic**: plain colored text with `|` dividers and block meters, like `███░│░░░░░`.
+
 ## Widgets
 
 | Widget                                                        | Shows                                                                                                    |
@@ -136,21 +138,21 @@ A widget with nothing to show hides itself. Widgets can be recolored, made label
 
 ## Commands
 
-| Command                                   | What it does                                                |
-| ----------------------------------------- | ----------------------------------------------------------- |
-| `npx agy-powerline init [--yes]`          | Install or update the statusline                            |
-| `npx agy-powerline configure`             | Open the editor (alias `config`)                            |
-| `npx agy-powerline preset <name>`         | Apply a preset (`--list` to see them)                       |
-| `npx agy-powerline theme <name>`          | Switch theme (`--list`, `--gallery`)                        |
-| `npx agy-powerline gradient <name>`       | Color each row with a gradient (`--list`, `off`)            |
-| `npx agy-powerline layout <pills\|lines>` | Switch layout                                               |
-| `npx agy-powerline caps <style>`          | Switch the pill shape: `round`, `angled`, `slanted`, `flat` |
-| `npx agy-powerline export [file]`         | Save your config to a file, to back it up or share it       |
-| `npx agy-powerline import <file>`         | Load a config, after showing what changes (`--merge`)       |
-| `npx agy-powerline doctor`                | Check the install and explain what's wrong                  |
-| `npx agy-powerline report`                | Write a privacy-safe bug report                             |
-| `npx agy-powerline uninstall [--delete]`  | Remove it from agy (`--delete` also removes its files)      |
-| `npx agy-powerline render --demo`         | Print the bar with sample data                              |
+| Command                                            | What it does                                                |
+| -------------------------------------------------- | ----------------------------------------------------------- |
+| `npx agy-powerline init [--yes]`                   | Install or update the statusline                            |
+| `npx agy-powerline configure`                      | Open the editor (alias `config`)                            |
+| `npx agy-powerline preset <name>`                  | Apply a preset (`--list` to see them)                       |
+| `npx agy-powerline theme <name>`                   | Switch theme (`--list`, `--gallery`)                        |
+| `npx agy-powerline gradient <name>`                | Color each row with a gradient (`--list`, `off`)            |
+| `npx agy-powerline layout <pills\|lines\|classic>` | Switch layout                                               |
+| `npx agy-powerline caps <style>`                   | Switch the pill shape: `round`, `angled`, `slanted`, `flat` |
+| `npx agy-powerline export [file]`                  | Save your config to a file, to back it up or share it       |
+| `npx agy-powerline import <file>`                  | Load a config, after showing what changes (`--merge`)       |
+| `npx agy-powerline doctor`                         | Check the install and explain what's wrong                  |
+| `npx agy-powerline report`                         | Write a privacy-safe bug report                             |
+| `npx agy-powerline uninstall [--delete]`           | Remove it from agy (`--delete` also removes its files)      |
+| `npx agy-powerline render --demo`                  | Print the bar with sample data                              |
 
 Run any command with `--help` for its options.
 

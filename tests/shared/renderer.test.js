@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -265,7 +266,7 @@ async function run() {
     !pillsMeter(data100, false).includes("[") && !pillsMeter(data100, false).includes("]")
   );
 
-  // Row gaps: a blank line between Pills rows, only when asked for.
+  // Row gaps: a blank line between rows, in every layout, only when asked for.
   const twoRows = [{ id: "model" }, { id: "lineBreak" }, { id: "fiveHourPct" }];
   const rowLines = (config) =>
     stripAnsi(
@@ -278,9 +279,20 @@ async function run() {
     gapped.length === 3 && gapped[1].trim() === "" && /Gemini/.test(gapped[0]),
     JSON.stringify(gapped)
   );
+  const textGaps = LAYOUT_ORDER.filter((layout) => layout !== "pills").map((layout) => [
+    rowLines({ layout }),
+    rowLines({ rowGap: true, layout }),
+  ]);
   record(
-    "rowGap leaves the Lines layout alone",
-    rowLines({ rowGap: true, layout: "lines" }).length === 2
+    "rowGap puts a blank line between rows in the text layouts too",
+    textGaps.every(
+      ([plain, gapped]) =>
+        plain.length === 2 &&
+        gapped.length === 3 &&
+        gapped[1].trim() === "" &&
+        /Gemini/.test(gapped[0])
+    ),
+    JSON.stringify(textGaps)
   );
   record("rowGap survives a config round trip", mergeConfig({ rowGap: true }).rowGap === true);
 
@@ -430,7 +442,7 @@ async function run() {
     renderStatusline(realPayload, { ...defaultConfig(), layout, widgets: [{ id }] });
   record(
     "context tokens agree with the percentage beside them (cached tokens included)",
-    ["pills", "lines"].every(
+    LAYOUT_ORDER.every(
       (layout) =>
         /123\.1K\/1\.0M \(11\.7%\)/.test(contextOnly(layout)) &&
         /123\.1K\/1\.0M/.test(contextOnly(layout, "contextTokens"))

@@ -22,7 +22,6 @@
     { "id": "fiveHourReset" },
     { "id": "separator" },
     { "id": "weeklyBar" },
-    { "id": "weeklyReset" },
-    { "id": "lineBreak" }
+    { "id": "weeklyReset" }
   ]
 }

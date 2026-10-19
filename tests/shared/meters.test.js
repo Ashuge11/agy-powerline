@@ -139,6 +139,53 @@ async function run() {
     setActiveDepth(previousDepth);
   }
 
+  // Classic: 25 blocks, ░ for the rest, a thin pace line, | between widgets.
+  const classic = stripAnsi(
+    render(
+      { id: "fiveHourBar" },
+      { layout: "classic", widgets: [{ id: "fiveHourBar" }, { id: "fiveHourReset" }] }
+    )
+  );
+  record(
+    "Classic draws ██░│░ block meters, without brackets, and | dividers",
+    / █*░*│░* \d+\.\d% rem \| /.test(classic) &&
+      !/[[\]]/.test(classic) &&
+      visibleWidth(classic.match(/[█░│]+/)[0]) === 25,
+    classic
+  );
+
+  setActiveDepth("truecolor");
+  try {
+    const palette = {
+      quotaLow: [0, 200, 0],
+      quotaHigh: [200, 200, 0],
+      quotaCrit: [200, 0, 0],
+      track: [50, 50, 50],
+      text: [9, 9, 9],
+    };
+    const cells = (out) => [...out.matchAll(/\x1b\[38;2;(\d+;\d+;\d+)m(.)/g)];
+
+    // 100% used over 5 cells: ok, halfway to caution, caution, halfway to danger, danger.
+    const ramp = cells(renderDotMeter(100, 5, false, palette, false, { style: "ramp" }));
+    record(
+      "ramp shades the filled cells from the theme's ok color through caution to danger",
+      ramp.map((m) => m[1]).join(" ") === "0;200;0 100;200;0 200;200;0 200;100;0 200;0;0" &&
+        ramp.every((m) => m[2] === "█")
+    );
+
+    const rings = renderDotMeter(40, 5, false, palette, false, {
+      style: "rings",
+      color: [0, 200, 0],
+    });
+    record(
+      "rings draws ● in the fill color and ○ in that color faded toward the track",
+      rings.startsWith("\x1b[38;2;0;200;0m●●\x1b[38;2;25;125;25m○○○"),
+      rings.replace(/\x1b/g, "\\e")
+    );
+  } finally {
+    setActiveDepth(previousDepth);
+  }
+
   const blocks = stripAnsi(render({ id: "fiveHourBar", meter: "blocks" }));
   const geometric = stripAnsi(
     render({ id: "fiveHourBar" }, { layout: "lines", meterStyle: "geometric" })

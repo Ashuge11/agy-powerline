@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -20,7 +21,7 @@ const { VALID_WIDGET_IDS } = require("../../src/lib/config");
 // show "[object Object]".
 function testWrongPayloadTypes() {
   const widgets = [...VALID_WIDGET_IDS].filter((id) => id !== "exec").map((id) => ({ id }));
-  const configs = ["pills", "lines"].map((layout) => mergeConfig({ layout, widgets }));
+  const configs = LAYOUT_ORDER.map((layout) => mergeConfig({ layout, widgets }));
   const failures = [];
   const check = (label, payload) => {
     for (const config of configs) {
@@ -69,7 +70,7 @@ function testWrongPayloadTypes() {
   );
 
   // Meter styles of the wrong type or unknown fall back to the default meter.
-  const meters = ["pills", "lines"].every((layout) => {
+  const meters = LAYOUT_ORDER.every((layout) => {
     try {
       const bad = mergeConfig({
         layout,
@@ -368,7 +369,7 @@ function testBadGradients() {
     { stops: ["#f00", "#00f"] },
   ];
   const failures = [];
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const plain = renderStatusline(
       sampleData(),
       { ...defaultConfig(), layout },

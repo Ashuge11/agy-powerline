@@ -25,7 +25,7 @@
 一眼看到当前模型、Gemini 5h/7d、Claude/GPT 和 Argon 配额、上下文窗口、git 分支等信息。在交互式编辑器中挑选组件、主题和布局。一条命令即可安装，零依赖。
 
 <p align="center">
-  <img src="assets/demo.gif" alt="agy-powerline 的 configure：输入 argon 添加 Argon 每周配额，切换到 Dark Metro 主题，再从 Pills 布局切换到 Lines，并实时预览状态栏" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline 的 configure：输入 argon 添加 Argon 每周配额，然后浏览预设、主题和布局并实时预览状态栏，最后打开 Powerline 标签页" width="850">
 </p>
 
 ## 安装
@@ -67,7 +67,7 @@ Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then t
 | `agent`   | 代理状态、子代理、标题、模式、沙盒；模型、上下文 %、产物、最紧张的配额 |
 | `git`     | 项目、分支、worktree、stash；文件数、改动行数、提交                    |
 | `tokens`  | 上下文 token、会话输入/输出 token、缓存；今天和 7 天的 token           |
-| `quotas`  | 套餐和模型；所有配额（5h、7d、第三方、Argon），每行一个                |
+| `quotas`  | 套餐和模型；5h 和 7d 配额并排显示，第三方和 Argon 配额在第三行         |
 | `full`    | 全部：会话、项目和 git；上下文、token 和缓存；两组配额                 |
 
 ### 主题
@@ -97,6 +97,8 @@ Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then t
   <img src="assets/screenshots/lines-light.png" alt="agy-powerline 的 Lines 布局，浅色终端上的 light-sky 主题" width="850">
 </p>
 
+**Classic**：用 `|` 分隔的纯彩色文本，进度条为方块，例如 `███░│░░░░░`。
+
 ## 组件
 
 | 组件                                                          | 显示内容                                                                                                 |
@@ -125,21 +127,21 @@ Install the agy-powerline statusline: run `npx agy-powerline init --yes`, then t
 
 ## 命令
 
-| 命令                                      | 作用                                                  |
-| ----------------------------------------- | ----------------------------------------------------- |
-| `npx agy-powerline init [--yes]`          | 安装或更新状态栏                                      |
-| `npx agy-powerline configure`             | 打开编辑器（别名 `config`）                           |
-| `npx agy-powerline preset <name>`         | 应用预设（`--list` 查看全部）                         |
-| `npx agy-powerline theme <name>`          | 切换主题（`--list`、`--gallery`）                     |
-| `npx agy-powerline gradient <name>`       | Color each row with a gradient (`--list`, `off`)      |
-| `npx agy-powerline layout <pills\|lines>` | 切换布局                                              |
-| `npx agy-powerline caps <style>`          | 切换胶囊形状：`round`、`angled`、`slanted`、`flat`    |
-| `npx agy-powerline export [file]`         | Save your config to a file, to back it up or share it |
-| `npx agy-powerline import <file>`         | Load a config, after showing what changes (`--merge`) |
-| `npx agy-powerline doctor`                | 检查安装并说明问题所在                                |
-| `npx agy-powerline report`                | 生成保护隐私的错误报告                                |
-| `npx agy-powerline uninstall [--delete]`  | 从 agy 中移除（`--delete` 会同时删除其文件）          |
-| `npx agy-powerline render --demo`         | 用示例数据打印状态栏                                  |
+| 命令                                               | 作用                                                  |
+| -------------------------------------------------- | ----------------------------------------------------- |
+| `npx agy-powerline init [--yes]`                   | 安装或更新状态栏                                      |
+| `npx agy-powerline configure`                      | 打开编辑器（别名 `config`）                           |
+| `npx agy-powerline preset <name>`                  | 应用预设（`--list` 查看全部）                         |
+| `npx agy-powerline theme <name>`                   | 切换主题（`--list`、`--gallery`）                     |
+| `npx agy-powerline gradient <name>`                | Color each row with a gradient (`--list`, `off`)      |
+| `npx agy-powerline layout <pills\|lines\|classic>` | 切换布局                                              |
+| `npx agy-powerline caps <style>`                   | 切换胶囊形状：`round`、`angled`、`slanted`、`flat`    |
+| `npx agy-powerline export [file]`                  | Save your config to a file, to back it up or share it |
+| `npx agy-powerline import <file>`                  | Load a config, after showing what changes (`--merge`) |
+| `npx agy-powerline doctor`                         | 检查安装并说明问题所在                                |
+| `npx agy-powerline report`                         | 生成保护隐私的错误报告                                |
+| `npx agy-powerline uninstall [--delete]`           | 从 agy 中移除（`--delete` 会同时删除其文件）          |
+| `npx agy-powerline render --demo`                  | 用示例数据打印状态栏                                  |
 
 任何命令加上 `--help` 即可查看其选项。
 

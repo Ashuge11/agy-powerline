@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const fs = require("fs");
 const path = require("path");
 const { record } = require("../helpers");
@@ -184,7 +185,7 @@ function testTightestQuota() {
     /Argon 7d: .*8\.2% rem/.test(argonLines) && /Argon reset: 6d 13h/.test(argonLines),
     argonLines
   );
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const hidden = render(real, argonWidgets, { layout });
     record(`${layout} Argon widgets hide without an Argon bucket`, hidden.trim() === "", hidden);
   }

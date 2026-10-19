@@ -37,10 +37,10 @@ Enter on a widget opens its options: color, label (shown or value only), and wha
 | `x`, Delete, Backspace | Remove                                                                            |
 | `o`                    | Presets (`default`, `compact`, `agent`, `git`, `tokens`, `quotas`, `full`)        |
 | `t`                    | Themes (select `Custom` or press `c`/`e` to open in-TUI color editor)             |
-| `l`                    | Layout (Pills or Lines)                                                           |
+| `l`                    | Layout (Pills, Lines or Classic)                                                  |
 | `p`                    | Powerline (style, separators, start and end caps)                                 |
 | `j`                    | Toggle joins (adjacent widgets share one pill, Pills layout)                      |
-| `v`                    | Toggle space between rows (a blank line between Pills rows)                       |
+| `v`                    | Toggle space between rows (a blank line between rows)                             |
 | `e`                    | Toggle emojis                                                                     |
 | `m`                    | Toggle minimalist mode (values only, no icons or labels)                          |
 | `r`                    | Toggle the quota pace marker                                                      |
@@ -117,29 +117,33 @@ The marker needs no extra data: it comes from the reset time Antigravity already
 
 ## Meter styles
 
-Pills draw meters as small dots and Lines as larger ones. `"meterStyle"` picks another look for every meter, and `"meter"` on a meter widget (`fiveHourBar`, `weeklyBar`, `thirdPartyFiveHour`, `thirdPartyWeekly`, `argonWeekly`, `context`) for that one; the widget's value wins. `configure` sets the per-widget one (Enter on a meter widget, then **Meter**).
+Pills draw meters as small dots, Lines as larger ones and Classic as blocks. `"meterStyle"` picks another look for every meter, and `"meter"` on a meter widget (`fiveHourBar`, `weeklyBar`, `thirdPartyFiveHour`, `thirdPartyWeekly`, `argonWeekly`, `context`) for that one; the widget's value wins. `configure` sets the per-widget one (Enter on a meter widget, then **Meter**).
 
 ```json
 { "meterStyle": "geometric", "widgets": [{ "id": "fiveHourBar", "meter": "blocks" }] }
 ```
 
-| Id                  | Filled               | Empty                | Example (50%)           |
-| ------------------- | -------------------- | -------------------- | ----------------------- |
-| `pips` (Pills' own) | `•` in a light color | `•` in a dark color  | the default Pills meter |
-| `cells`             | background color     | darker background    | solid colored blocks    |
-| `dots` (Lines' own) | `●`                  | `●` in a track color | the default Lines meter |
-| `blocks`            | `█`                  | `░`                  | `█████░░░░░`            |
-| `shade`             | `▓`                  | `░`                  | `▓▓▓▓▓░░░░░`            |
-| `line`              | `━`                  | `─`                  | `━━━━━─────`            |
-| `geometric`         | `▰`                  | `▱`                  | `▰▰▰▰▰▱▱▱▱▱`            |
-| `squares`           | `■`                  | `□`                  | `■■■■■□□□□□`            |
-| `braille`           | `⣿`                  | `⣀`                  | `⣿⣿⣿⣿⣿⣀⣀⣀⣀⣀`            |
-| `bars`              | `▮`                  | `▯`                  | `▮▮▮▮▮▯▯▯▯▯`            |
+| Id                  | Filled                       | Empty                  | Example (50%)           |
+| ------------------- | ---------------------------- | ---------------------- | ----------------------- |
+| `pips` (Pills' own) | `•` in a light color         | `•` in a dark color    | the default Pills meter |
+| `cells`             | background color             | darker background      | solid colored blocks    |
+| `dots` (Lines' own) | `●`                          | `●` in a track color   | the default Lines meter |
+| `blocks`            | `█`                          | `░`                    | `█████░░░░░`            |
+| `shade`             | `▓`                          | `░`                    | `▓▓▓▓▓░░░░░`            |
+| `line`              | `━`                          | `─`                    | `━━━━━─────`            |
+| `geometric`         | `▰`                          | `▱`                    | `▰▰▰▰▰▱▱▱▱▱`            |
+| `squares`           | `■`                          | `□`                    | `■■■■■□□□□□`            |
+| `braille`           | `⣿`                          | `⣀`                    | `⣿⣿⣿⣿⣿⣀⣀⣀⣀⣀`            |
+| `bars`              | `▮`                          | `▯`                    | `▮▮▮▮▮▯▯▯▯▯`            |
+| `rings`             | `●`                          | `○`, faded             | `●●●●●○○○○○`            |
+| `ramp`              | `█`, ok to caution to danger | `░` in the track color | `█████░░░░░`            |
 
-- `cells` exists only in Pills; in Lines it draws `dots`. ASCII mode draws `pips` as `cells`. An unknown id is ignored and each layout draws its own.
+- `cells` exists only in Pills; Lines draws `dots` and Classic `blocks` instead. ASCII mode draws `pips` as `cells`. An unknown id is ignored and each layout draws its own.
 - `pips` marks the pace with a larger dot `●` instead of `┃`. In Pills it draws on the pill's color with the light fill and dark track colors `cells` uses.
+- `ramp` shades each filled cell by its place along the meter, from the theme's ok color through caution to danger, so a fuller meter ends in a warmer color; `rings` keeps the fill's color and fades the empty rings toward the track. Both show their colors in Lines and Classic.
 - In Pills the other glyph styles draw on the pill's color: filled glyphs in the pill's text color, empty ones dimmed. In Lines the filled part keeps its ok, caution or danger color and the empty part the track color.
-- Meters keep their width (12 columns in Pills, 25 in Lines, 12 when fitted to a narrow terminal) and the pace marker stays where it is.
+- In Classic every style draws its empty part in the same color as the fill, with a thin `│` as the pace marker.
+- Meters keep their width (12 columns in Pills, 25 in Lines and Classic, 12 when fitted to a narrow terminal) and the pace marker stays where it is.
 - ASCII mode always draws `#` and `-` (and `|` for the pace marker), whatever the style.
 
 ## Reset times and clock
@@ -341,7 +345,7 @@ In the TUI, press `p`, then Enter on **Separators**, **Start caps** or **End cap
 
 ### Space between rows
 
-Pills fill the whole height of a terminal line, so stacked rows touch. `"rowGap": true` puts a blank line between Pills rows; it's off by default because the bar then takes more lines (three rows become five). Toggle it with `v` in `configure`, or **Space between rows** in the Powerline tab (`p`). Lines rows don't need it and are left alone.
+Pills fill the whole height of a terminal line, so stacked rows touch. `"rowGap": true` puts a blank line between rows, in every layout (in Lines and Classic it gives the text more air); it's off by default because the bar then takes more lines (three rows become five). Toggle it with `v` in `configure`, or **Space between rows** in the Powerline tab (`p`).
 
 ## Custom theme
 

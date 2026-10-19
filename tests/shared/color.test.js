@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const { record, stripAnsi, PAYLOAD } = require("../helpers");
 const {
   renderStatusline,
@@ -17,7 +18,7 @@ async function run() {
   };
   const emptyEnv = {};
 
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const out = stripAnsi(
       renderStatusline(base, { ...defaultConfig(), layout, ascii: true }, { env: emptyEnv })
     );

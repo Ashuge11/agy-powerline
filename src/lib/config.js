@@ -91,9 +91,14 @@ const LAYOUTS = {
     name: "Lines",
     description: "Plain colored text with dividers and dot meters",
   },
+  classic: {
+    id: "classic",
+    name: "Classic",
+    description: "Plain colored text with | dividers and █░│ block meters",
+  },
 };
 
-const LAYOUT_ORDER = ["pills", "lines"];
+const LAYOUT_ORDER = ["pills", "lines", "classic"];
 
 function resolveLayoutId(layoutId) {
   return LAYOUTS[layoutId] ? layoutId : "pills";
@@ -341,7 +346,7 @@ const PRESETS = {
   quotas: {
     id: "quotas",
     name: "Quota watch",
-    description: "Plan and model; 5h, 7d, third-party and Argon quotas, one per row",
+    description: "Plan and model; 5h and 7d quotas side by side; third-party and Argon",
     widgets: [
       { id: "plan" },
       { id: "separator" },
@@ -349,13 +354,13 @@ const PRESETS = {
       { id: "lineBreak" },
       { id: "fiveHourBar" },
       { id: "fiveHourReset" },
-      { id: "lineBreak" },
+      { id: "separator" },
       { id: "weeklyBar" },
       { id: "weeklyReset" },
       { id: "lineBreak" },
       { id: "thirdPartyFiveHour" },
       { id: "thirdPartyWeekly" },
-      { id: "lineBreak" },
+      { id: "separator" },
       { id: "argonWeekly" },
       { id: "argonReset" },
     ],

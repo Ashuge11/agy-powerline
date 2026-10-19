@@ -81,6 +81,7 @@ const themes = THEME_ORDER.filter((id) => id !== "custom").map((id) => {
     target,
     pills: render(payload(), { layout: "pills" }),
     lines: render(payload(), { layout: "lines" }),
+    classic: render(payload(), { layout: "classic" }),
     status,
     configHash,
     states: ["fiveHour", "caution", "warn"].map((k) => hexOf(t.colors[k])),
@@ -130,6 +131,8 @@ const cards = themes
       <div class="screen">${t.pills}</div>
       <div class="term-label">lines</div>
       <div class="screen">${t.lines}</div>
+      <div class="term-label">classic</div>
+      <div class="screen">${t.classic}</div>
       <div class="term-label">5h quota at 80% · 22% · 6% left</div>
       <div class="screen">${t.status}</div>
     </div>

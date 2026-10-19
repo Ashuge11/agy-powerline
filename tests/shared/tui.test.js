@@ -81,6 +81,29 @@ function testStateCues() {
       )
   );
 
+  // Each layout's details: three lines under 90 columns, a blank line between them.
+  const layoutDetails = [0, 1, 2].map((cursor) => {
+    const frame = strip(
+      renderFrame({ config: defaultConfig(), screen: "layout", cursor, columns: 200 })
+    );
+    const rows = frame.split("\n");
+    const top = rows.findIndex((line) => /╮ ╭─ /.test(line));
+    const bottom = rows.findIndex((line, i) => i > top && /╰/.test(line));
+    return rows
+      .slice(top + 1, bottom)
+      .map((line) => line.slice(line.indexOf("│ │") + 4, -1).trim());
+  });
+  record(
+    "each layout's details are three lines under 90 columns, separated by blank lines",
+    layoutDetails.every(
+      (panel) =>
+        panel.length === 5 &&
+        [0, 2, 4].every((i) => panel[i].length > 0 && panel[i].length <= 90) &&
+        [1, 3].every((i) => panel[i] === "")
+    ),
+    JSON.stringify(layoutDetails)
+  );
+
   const themes = strip(renderFrame({ config: defaultConfig(), screen: "themes", columns: 160 }));
   record(
     "the theme details show a sample of the editor in that theme",

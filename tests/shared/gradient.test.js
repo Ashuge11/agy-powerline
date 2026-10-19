@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const { record, PAYLOAD } = require("../helpers");
 const { renderStatusline, mergeConfig, defaultConfig } = require("../../src/lib/shared");
 const { parseGradientStops, gradientColors, gradientAt } = require("../../src/lib/colors");
@@ -179,7 +180,7 @@ function checkLines() {
 
 function checkDepths() {
   const widgets = [{ id: "model" }, sep, { id: "cwd" }, sep, { id: "project" }];
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const ansi256 = render(widgets, { layout, gradient: "rainbow" }, undefined, {
       color: "256",
       env: {},

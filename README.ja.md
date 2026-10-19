@@ -25,7 +25,7 @@
 使用中のモデル、Gemini の 5h/7d・Claude/GPT・Argon のクォータ、コンテキストウィンドウ、git ブランチなどがひと目でわかります。ウィジェット、テーマ、レイアウトは対話式のエディターで選べます。インストールはコマンドひとつ、依存パッケージはありません。
 
 <p align="center">
-  <img src="assets/demo.gif" alt="agy-powerline の configure：argon と入力して Argon の週間クォータを追加し、Dark Metro テーマに切り替え、Pills から Lines レイアウトへ。バーのライブプレビュー付き" width="850">
+  <img src="assets/demo.gif" alt="agy-powerline の configure：argon と入力して Argon の週間クォータを追加し、プリセット、テーマ、レイアウトをバーのライブプレビューで見て回り、最後に Powerline タブを開く" width="850">
 </p>
 
 ## インストール
@@ -67,7 +67,7 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
 | `agent`    | エージェントの状態、サブエージェント、タイトル、モード、サンドボックス；モデル、コンテキスト %、アーティファクト、最も残りの少ないクォータ |
 | `git`      | プロジェクト、ブランチ、worktree、stash；ファイル数、変更行数、コミット                                                                    |
 | `tokens`   | コンテキストのトークン、セッションの入出力トークン、キャッシュ；今日と 7 日間のトークン                                                    |
-| `quotas`   | プランとモデル；すべてのクォータ（5h、7d、サードパーティ、Argon）を 1 行にひとつずつ                                                       |
+| `quotas`   | プランとモデル；5h と 7d のクォータを横並びに、サードパーティと Argon を 3 行目に                                                          |
 | `full`     | すべて：セッション、プロジェクト、git；コンテキスト、トークン、キャッシュ；両方のクォータ                                                  |
 
 ### テーマ
@@ -97,6 +97,8 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
   <img src="assets/screenshots/lines-light.png" alt="明るいターミナルでの light-sky テーマの agy-powerline Lines レイアウト" width="850">
 </p>
 
+**Classic**：`|` で区切ったプレーンな色付きテキストと、ブロックメーター（例：`███░│░░░░░`）。
+
 ## ウィジェット
 
 | ウィジェット                                                  | 表示内容                                                                                                 |
@@ -125,21 +127,21 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
 
 ## コマンド
 
-| コマンド                                  | 内容                                                         |
-| ----------------------------------------- | ------------------------------------------------------------ |
-| `npx agy-powerline init [--yes]`          | ステータスラインをインストールまたは更新                     |
-| `npx agy-powerline configure`             | エディターを開く（別名 `config`）                            |
-| `npx agy-powerline preset <name>`         | プリセットを適用（一覧は `--list`）                          |
-| `npx agy-powerline theme <name>`          | テーマを切り替え（`--list`、`--gallery`）                    |
-| `npx agy-powerline gradient <name>`       | Color each row with a gradient (`--list`, `off`)             |
-| `npx agy-powerline layout <pills\|lines>` | レイアウトを切り替え                                         |
-| `npx agy-powerline caps <style>`          | カプセルの形を切り替え：`round`、`angled`、`slanted`、`flat` |
-| `npx agy-powerline export [file]`         | Save your config to a file, to back it up or share it        |
-| `npx agy-powerline import <file>`         | Load a config, after showing what changes (`--merge`)        |
-| `npx agy-powerline doctor`                | インストールを確認し、問題を説明                             |
-| `npx agy-powerline report`                | プライバシーに配慮したバグレポートを作成                     |
-| `npx agy-powerline uninstall [--delete]`  | agy から削除（`--delete` でファイルも削除）                  |
-| `npx agy-powerline render --demo`         | サンプルデータでバーを表示                                   |
+| コマンド                                           | 内容                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| `npx agy-powerline init [--yes]`                   | ステータスラインをインストールまたは更新                     |
+| `npx agy-powerline configure`                      | エディターを開く（別名 `config`）                            |
+| `npx agy-powerline preset <name>`                  | プリセットを適用（一覧は `--list`）                          |
+| `npx agy-powerline theme <name>`                   | テーマを切り替え（`--list`、`--gallery`）                    |
+| `npx agy-powerline gradient <name>`                | Color each row with a gradient (`--list`, `off`)             |
+| `npx agy-powerline layout <pills\|lines\|classic>` | レイアウトを切り替え                                         |
+| `npx agy-powerline caps <style>`                   | カプセルの形を切り替え：`round`、`angled`、`slanted`、`flat` |
+| `npx agy-powerline export [file]`                  | Save your config to a file, to back it up or share it        |
+| `npx agy-powerline import <file>`                  | Load a config, after showing what changes (`--merge`)        |
+| `npx agy-powerline doctor`                         | インストールを確認し、問題を説明                             |
+| `npx agy-powerline report`                         | プライバシーに配慮したバグレポートを作成                     |
+| `npx agy-powerline uninstall [--delete]`           | agy から削除（`--delete` でファイルも削除）                  |
+| `npx agy-powerline render --demo`                  | サンプルデータでバーを表示                                   |
 
 各コマンドのオプションは `--help` で確認できます。
 
