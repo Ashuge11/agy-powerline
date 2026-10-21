@@ -1,7 +1,7 @@
 "use strict";
 
 const os = require("os");
-const { formatReset, resetInSeconds, firstText } = require("./formatters");
+const { formatReset, resetInSeconds, firstText, stripControl } = require("./formatters");
 const { resolveGit, resolveGitDetails } = require("./git");
 const { resolveUsage } = require("./usage");
 const { isWsl } = require("./paths");
@@ -40,6 +40,27 @@ function currentOsName() {
     return "WSL";
   }
   return OS_NAMES[process.platform] || process.platform;
+}
+
+function currentUserAndHost() {
+  let userInfoName = "";
+  try {
+    userInfoName = os.userInfo().username;
+  } catch {
+    // Some containers have no passwd entry for the current user.
+  }
+  const username =
+    [userInfoName, process.env.USER, process.env.USERNAME]
+      .map((name) => stripControl(name).trim())
+      .find(Boolean) || "";
+
+  let hostname = "";
+  try {
+    hostname = stripControl(os.hostname()).split(".")[0].trim();
+  } catch {
+    // The host widget hides when the OS cannot provide a name.
+  }
+  return { username, hostname };
 }
 
 // Payload numbers can be strings, negative or absurd. The bar must never show
@@ -213,11 +234,15 @@ function extractSession(data, config, options = {}) {
   const cacheHitPct = cacheTotal > 0 ? Math.round((cacheReadTokens * 100) / cacheTotal) : 0;
 
   const modelName = firstText(data.model?.display_name, data.model?.id);
-  const osName = config?.widgets?.some((widget) => widget?.id === "os") ? currentOsName() : "";
+  const uses = (id) => Boolean(config?.widgets?.some((widget) => widget?.id === id));
+  const osName = uses("os") ? currentOsName() : "";
+  const { username, hostname } = uses("host") ? currentUserAndHost() : {};
 
   return {
     os: osName,
     ramPct,
+    username: username || "",
+    hostname: hostname || "",
     model: modelName,
     contextPct,
     contextSize,

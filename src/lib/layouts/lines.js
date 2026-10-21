@@ -26,7 +26,8 @@ const {
   gitFileParts,
   formatTasks,
   formatMode,
-  clipText,
+  limitWidth,
+  shortenPath,
   formatTokens,
   formatContextTokens,
   shortModelName,
@@ -284,7 +285,11 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       return (
         fg(palette.model) +
         tag() +
-        (widget?.short ? shortModelName(session.model, ascii) : session.model) +
+        limitWidth(
+          widget?.short ? shortModelName(session.model, ascii) : session.model,
+          widget,
+          ascii
+        ) +
         RESET
       );
 
@@ -395,7 +400,11 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
     }
 
     case "cwd": {
-      const dirname = homePath(session.cwd);
+      const dirname = limitWidth(
+        shortenPath(homePath(session.cwd), widget?.depth, ascii),
+        widget,
+        ascii
+      );
       if (!dirname) {
         return null;
       }
@@ -403,7 +412,7 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
     }
 
     case "project": {
-      const proj = basenameOf(session.project);
+      const proj = limitWidth(basenameOf(session.project), widget, ascii);
       if (!proj) {
         return null;
       }
@@ -417,6 +426,14 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       return fg(palette.location) + tag(OS_ICONS[session.os]) + session.os + RESET;
     }
 
+    case "host": {
+      if (!session.hostname) {
+        return null;
+      }
+      const name = session.username ? `${session.username}@${session.hostname}` : session.hostname;
+      return fg(palette.location) + tag() + name + RESET;
+    }
+
     case "git": {
       if (!session.git || !session.git.branch) {
         return null;
@@ -424,11 +441,12 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       const opStr = widget.operation === false ? "" : formatGitOperation(session.git.operation);
       const syncStr = formatGitSync(session.git.ahead, session.git.behind, ascii);
       const syncPart = syncStr ? ` ${syncStr}` : "";
+      const branch = limitWidth(session.git.branch, widget, ascii);
       return (
         fg(palette.git) +
         tag() +
         "(" +
-        session.git.branch +
+        branch +
         (session.git.dirty ? `${fg(palette.gitDirty)}*` : "") +
         (opStr ? `${fg(palette.gitDirty)} ${opStr}` : "") +
         (syncPart ? `${fg(palette.git)}${syncPart}` : "") +
@@ -482,7 +500,9 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       if (!session.gitDetails?.worktree) {
         return null;
       }
-      return fg(palette.git) + tag() + session.gitDetails.worktree + RESET;
+      return (
+        fg(palette.git) + tag() + limitWidth(session.gitDetails.worktree, widget, ascii) + RESET
+      );
 
     case "plan":
       if (!session.plan) {
@@ -519,7 +539,7 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       if (!session.title) {
         return null;
       }
-      return fg(palette.text) + tag() + clipText(session.title, TITLE_MAX, ascii) + RESET;
+      return fg(palette.text) + tag() + limitWidth(session.title, widget, ascii, TITLE_MAX) + RESET;
 
     case "sandbox": {
       if (!session.sandbox) {
@@ -616,11 +636,15 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       if (!widget?.text) {
         return null;
       }
-      return fg(palette.text) + tag() + widget.text + RESET;
+      return fg(palette.text) + tag() + limitWidth(widget.text, widget, ascii) + RESET;
     }
 
     case "exec": {
-      const output = execWidgetOutput(widget, session);
+      // Only real output is cut: the [cmd] preview and blocked markers stay whole.
+      const output =
+        session.execMode === "run"
+          ? limitWidth(execWidgetOutput(widget, session), widget, ascii)
+          : execWidgetOutput(widget, session);
       if (!output) {
         return null;
       }

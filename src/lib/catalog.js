@@ -130,6 +130,13 @@ const WIDGET_CATALOG = [
     summary: "system running agy",
   },
   {
+    id: "host",
+    label: "Host",
+    unique: true,
+    description: "current user and short host name",
+    summary: "current user and host",
+  },
+  {
     id: "git",
     label: "VCS Branch",
     unique: true,

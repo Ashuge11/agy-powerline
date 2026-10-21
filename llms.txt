@@ -87,6 +87,7 @@
 - `title` — Current conversation title.
 - `ram` — Memory used on the machine.
 - `os` — Operating system running agy (Windows, macOS, Linux or WSL).
+- `host` — Current user and short hostname from the OS.
 - `version` — Antigravity CLI version.
 - `cacheRead` — Prompt-cache tokens read.
 - `cacheCreate` — Prompt-cache tokens created.

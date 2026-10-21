@@ -40,6 +40,7 @@ const VALID_WIDGET_IDS = new Set([
   "cwd",
   "project",
   "os",
+  "host",
   "git",
   "gitChanges",
   "gitFiles",

@@ -7,6 +7,7 @@ const { charWidth, visibleWidth } = require("./formatters");
 const DROP_ORDER = [
   "customText",
   "os",
+  "host",
   "gitStash",
   "gitWorktree",
   "title",

@@ -54,7 +54,7 @@ Enter on a widget opens its options: color, label (shown or value only), and wha
 
 ## Widgets
 
-Every value comes from the JSON Antigravity pipes on stdin. A widget with nothing to show hides itself: a model, quota, reset time, context window or token usage that is missing from the payload (or unusable) is left out, not shown as `Unknown`, `0%` or `now`.
+Most values come from the JSON Antigravity pipes on stdin; `host`, `os` and `ram` read from the machine agy runs on, and token totals across conversations read from agy's local database. A widget with nothing to show hides itself: a model, quota, reset time, context window or token usage that is missing from the payload (or unusable) is left out, not shown as `Unknown`, `0%` or `now`.
 
 - Local clock (`clock` e.g. `🕒 2:05pm`: the current time, in the format set under [`"clock"`](#reset-times-and-clock); `Clock: 2:05pm` in ASCII mode)
 - Model (`model.display_name`; `"short": true` shows `3.8 Flash·High` instead of `Gemini 3.8 Flash (High)`)
@@ -86,6 +86,7 @@ Every value comes from the JSON Antigravity pipes on stdin. A widget with nothin
 - Conversation title (`title` e.g. `💬 Fix the config loader`: `conversation_title` on one line, cut to 30 columns; hidden until the conversation has a title; among the first widgets dropped when a row doesn't fit)
 - Operating system (`os` e.g. `🍎 macOS`: Windows, macOS, Linux or WSL, read from the machine agy runs on, not the payload)
 - Cache read / create
+- Current user and short host name (`host` e.g. `👤 alex@devbox`: reads the user from OS account info (falling back to `USER` / `USERNAME`) and the hostname up to the first dot)
 - RAM usage of your machine (`ram`, read from the OS; caution color from 80%, danger from 90%)
 - Sandbox with network security state (`sandbox (net)` vs `sandbox (isolated)`)
 - Flex Separator (grows to fill `terminal_width`)
@@ -103,6 +104,13 @@ Any widget accepts these options:
 - **`textColor`**: the text color (on the pill in Pills; the plain text parts in Lines).
 - **`bold`**: `false` drops bold in Pills (on by default); `true` makes a Lines widget bold.
 - **`raw`**: `true` shows only the value, without icon or label: `72.0% rem` instead of `⏳ 5h: 72.0% rem`.
+- **`depth`** (`cwd` only): an integer from 1 to 10 keeps the root and last N folders, replacing the middle with `…` (`...` in ASCII mode). `/` and `\` paths are supported; invalid values are ignored. `configure` offers 1 to 4; set a higher depth in the config file.
+- **`maxWidth`**: an integer from 4 to 200 clips only the value, with `…` (`...` in ASCII mode). It applies to `cwd`, `project`, `git` (branch only), `title`, `model`, `customText`, `exec` and `gitWorktree`; invalid values are ignored. On `title`, it replaces the built-in 30-column limit. The icon, label, dirty marker, git operation and ahead/behind counts are not included in the limit, and on `exec` the `[cmd]` preview placeholder is never cut. `configure` steps from 10 to 80 columns by 5; set other widths in the config file.
+
+| Option        | Configuration                     | Example                                                                |
+| ------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| Folder depth  | `{ "id": "cwd", "depth": 2 }`     | `~/Documents/repos/app/src` → `~/…/app/src`                            |
+| Maximum width | `{ "id": "git", "maxWidth": 10 }` | `feature-with-a-long-name` → `feature-w…` (`feature...` in ASCII mode) |
 
 **Minimalist mode** turns `raw` on for every widget, which makes the bar much narrower on small terminals. Set `"minimalist": true` or press `m` in `configure`. A widget with `"raw": false` keeps its label even then.
 
