@@ -6,6 +6,9 @@ const { charWidth, visibleWidth } = require("./formatters");
 // first entry first. Ids not listed (custom ones) go before all of them.
 const DROP_ORDER = [
   "customText",
+  "os",
+  "gitStash",
+  "gitWorktree",
   "title",
   "clock",
   "version",
@@ -13,6 +16,8 @@ const DROP_ORDER = [
   "cacheRead",
   "totalTokens",
   "cacheHit",
+  "tokensToday",
+  "tokensWeek",
   "artifacts",
   "tasks",
   "plan",
@@ -29,6 +34,9 @@ const DROP_ORDER = [
   "weeklyReset",
   "fiveHourReset",
   "contextTokens",
+  "gitSha",
+  "gitFiles",
+  "gitChanges",
   "git",
   "sandbox",
   "weeklyPct",

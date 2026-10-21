@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -20,7 +21,7 @@ const { VALID_WIDGET_IDS } = require("../../src/lib/config");
 // show "[object Object]".
 function testWrongPayloadTypes() {
   const widgets = [...VALID_WIDGET_IDS].filter((id) => id !== "exec").map((id) => ({ id }));
-  const configs = ["pills", "lines"].map((layout) => mergeConfig({ layout, widgets }));
+  const configs = LAYOUT_ORDER.map((layout) => mergeConfig({ layout, widgets }));
   const failures = [];
   const check = (label, payload) => {
     for (const config of configs) {
@@ -67,6 +68,21 @@ function testWrongPayloadTypes() {
     failures.length === 0,
     failures.slice(0, 5).join("; ")
   );
+
+  // Meter styles of the wrong type or unknown fall back to the default meter.
+  const meters = LAYOUT_ORDER.every((layout) => {
+    try {
+      const bad = mergeConfig({
+        layout,
+        meterStyle: { x: 1 },
+        widgets: widgets.map((widget) => ({ ...widget, meter: ["blocks"] })),
+      });
+      return !renderStatusline(base, bad, { color: "none" }).includes("[object Object]");
+    } catch {
+      return false;
+    }
+  });
+  record("meter styles of the wrong type don't break the bar", meters);
 
   // The flex separator pads to terminal_width; a huge value must not allocate it.
   const widths = [1e12, "Infinity", -1, "wide"].map((width) => {
@@ -250,9 +266,143 @@ async function testStdoutErrorIsLogged() {
   }
 }
 
+// The usage widgets load node:sqlite, which prints an ExperimentalWarning on
+// Node 22: the installed runtime's stderr must stay empty all the same.
+function testUsageStderr() {
+  const { loadSqlite } = require("../../src/lib/usage");
+  if (!loadSqlite()?.DatabaseSync) {
+    record(`usage stderr check skipped: needs node:sqlite (Node ${process.version})`, true);
+    return;
+  }
+  const { makeConversationDb, generator } = require("./usage.test");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "agy-usage-stderr-"));
+  const home = path.join(root, "home");
+  const installDir = path.join(home, ".agy-powerline");
+  const conversations = path.join(home, ".gemini", "antigravity-cli", "conversations");
+  fs.mkdirSync(conversations, { recursive: true });
+  stageInstall(installDir);
+  fs.writeFileSync(
+    path.join(installDir, "statusline.config.json"),
+    JSON.stringify({ widgets: [{ id: "tokensToday" }], color: "none" })
+  );
+  makeConversationDb(path.join(conversations, "c.db"), {
+    gens: [generator({ input: 1200, output: 34, id: "x" }, Date.now())],
+  });
+  const env = { ...process.env, HOME: home, USERPROFILE: home };
+  delete env.AGY_POWERLINE_HOME;
+
+  try {
+    const result = spawnSync(NODE, [path.join(installDir, "statusline.js")], {
+      input: PAYLOAD,
+      env,
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 15000,
+    });
+    record(
+      "with usage widgets on the bar, the runtime's stderr stays empty",
+      result.status === 0 && result.stderr === "" && /Today: 1\.2K/.test(result.stdout),
+      `exit ${result.status}, stderr ${JSON.stringify(result.stderr)}, stdout ${JSON.stringify(result.stdout)}`
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+// An exec command handed the payload may never read it, exit before reading
+// it, or hang: none of these may break or stall the bar.
+function testExecPayloadFailures() {
+  const { clearExecCache } = require("../../src/lib/shared");
+  // Bigger than a pipe buffer, so the write is still going when the command exits.
+  const data = { ...sampleData(), cwd: process.cwd(), filler: "x".repeat(200000) };
+  const cases = [
+    ["ignores its stdin", 'node -e "console.log(42)"', 5000, (out) => out.includes("42")],
+    ["exits without reading", "exit 0", 5000, (out) => typeof out === "string"],
+    [
+      "times out",
+      'node -e "setTimeout(() => console.log(1), 5000)"',
+      300,
+      (out, ms) => ms < 4000 && !out.includes("⚡ 1"),
+    ],
+  ];
+
+  for (const [label, cmd, timeout, ok] of cases) {
+    clearExecCache();
+    const started = Date.now();
+    let out = "";
+    let error = "";
+    try {
+      out = renderStatusline(
+        data,
+        {
+          ...defaultConfig(),
+          widgets: [{ id: "model" }, { id: "exec", cmd, payload: true, interval: 0, timeout }],
+        },
+        { exec: "run", color: "none" }
+      );
+    } catch (err) {
+      error = err.message;
+    }
+    const ms = Date.now() - started;
+    record(
+      `exec with "payload": true, a command that ${label}, still renders the bar`,
+      !error && /Gemini/.test(out) && ok(out, ms),
+      error || `${ms} ms: ${JSON.stringify(out)}`
+    );
+  }
+  clearExecCache();
+}
+
+// A gradient of the wrong shape renders the plain theme, never an error.
+function testBadGradients() {
+  const bad = [
+    "",
+    "nope",
+    "#ff0000",
+    "#ff0000-#gggggg",
+    "#1-#2",
+    Array(8).fill("#fff").join("-"),
+    42,
+    true,
+    [],
+    ["#f00", "#00f"],
+    { stops: ["#f00", "#00f"] },
+  ];
+  const failures = [];
+  for (const layout of LAYOUT_ORDER) {
+    const plain = renderStatusline(
+      sampleData(),
+      { ...defaultConfig(), layout },
+      { color: "truecolor" }
+    );
+    for (const gradient of bad) {
+      try {
+        const out = renderStatusline(
+          sampleData(),
+          { ...defaultConfig(), layout, gradient },
+          { color: "truecolor" }
+        );
+        if (out !== plain) {
+          failures.push(`${layout} ${JSON.stringify(gradient)}: differs from the theme`);
+        }
+      } catch (err) {
+        failures.push(`${layout} ${JSON.stringify(gradient)}: ${err.message}`);
+      }
+    }
+  }
+  record(
+    "an invalid gradient renders the plain theme in both layouts",
+    failures.length === 0,
+    failures.slice(0, 5).join("; ")
+  );
+}
+
 async function run() {
   testGitLookup();
   testWrongPayloadTypes();
+  testBadGradients();
+  testExecPayloadFailures();
+  testUsageStderr();
   await testConcurrentExecCache();
   await testStdoutEpipe();
   await testStdoutErrorIsLogged();

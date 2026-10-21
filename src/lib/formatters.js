@@ -271,6 +271,24 @@ function formatTokenSplit(input, output, ascii = false) {
     : `${formatTokens(input)}↑ ${formatTokens(output)}↓`;
 }
 
+// The usage widgets' text: "1.2M", or "1.0M↑ 245.3K↓" with "split", plus the
+// share of a "budget" when one is set ("1.2M (60%)"). null with no tokens.
+function formatUsage(tokens, widget = {}, ascii = false) {
+  const input = Number(tokens?.input) || 0;
+  const output = Number(tokens?.output) || 0;
+  const total = input + output;
+  if (!(total > 0)) {
+    return null;
+  }
+  const value = widget?.split ? formatTokenSplit(input, output, ascii) : formatTokens(total);
+  const budget = widget?.budget;
+  const pct =
+    typeof budget === "number" && Number.isFinite(budget) && budget > 0
+      ? (total * 100) / budget
+      : null;
+  return { text: pct === null ? value : `${value} (${Math.round(pct)}%)`, pct };
+}
+
 // "used/window", or just the used tokens while the window size is unknown.
 function formatContextTokens(used, size) {
   return size > 0 ? `${formatTokens(used)}/${formatTokens(size)}` : formatTokens(used);
@@ -460,6 +478,31 @@ function visibleWidth(text) {
   return width;
 }
 
+// "+128 −34" as parts, so Lines can color each; zero counts are left out.
+function gitChangeParts(changes, ascii = false) {
+  const parts = [];
+  if (changes?.added > 0) {
+    parts.push({ kind: "added", text: `+${changes.added}` });
+  }
+  if (changes?.removed > 0) {
+    parts.push({ kind: "removed", text: `${ascii ? "-" : "−"}${changes.removed}` });
+  }
+  return parts;
+}
+
+const GIT_FILE_MARKS = {
+  unicode: { staged: "+", modified: "●", untracked: "?", conflicts: "≠" },
+  ascii: { staged: "S", modified: "M", untracked: "?", conflicts: "!" },
+};
+
+// "+2 ●3 ?1 ≠1" as parts: staged, modified, untracked, in conflict.
+function gitFileParts(files, ascii = false) {
+  const marks = GIT_FILE_MARKS[ascii ? "ascii" : "unicode"];
+  return Object.keys(marks)
+    .filter((kind) => files?.[kind] > 0)
+    .map((kind) => ({ kind, text: `${marks[kind]}${files[kind]}` }));
+}
+
 function formatGitSync(ahead, behind, ascii = false) {
   const up = ascii ? "^" : "⇡";
   const down = ascii ? "v" : "⇣";
@@ -475,6 +518,26 @@ function formatGitSync(ahead, behind, ascii = false) {
     return `${down}${b}`;
   }
   return "";
+}
+
+const GIT_OPERATION_LABELS = {
+  rebase: "REBASE",
+  am: "AM",
+  merge: "MERGING",
+  "cherry-pick": "CHERRY-PICKING",
+  revert: "REVERTING",
+  bisect: "BISECTING",
+};
+
+// "REBASE 2/5", "MERGING", or "" with no operation. Plain ASCII in both modes.
+function formatGitOperation(op) {
+  const name = GIT_OPERATION_LABELS[op?.name];
+  if (!name) {
+    return "";
+  }
+  return Number.isInteger(op.step) && Number.isInteger(op.total)
+    ? `${name} ${op.step}/${op.total}`
+    : name;
 }
 
 // "2 subagents, 1 task", or "" when nothing runs.
@@ -585,7 +648,11 @@ module.exports = {
   formatContextTokens,
   shortModelName,
   formatTokenSplit,
+  formatUsage,
   formatGitSync,
+  formatGitOperation,
+  gitChangeParts,
+  gitFileParts,
   formatTasks,
   formatMode,
   clipText,

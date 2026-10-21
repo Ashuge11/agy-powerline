@@ -1,3 +1,5 @@
+"use strict";
+
 const readline = require("readline");
 const { spawn } = require("child_process");
 const {
@@ -19,11 +21,10 @@ const {
   PRESETS,
   PRESET_ORDER,
   applyPreset,
-  resolveQuotaThresholds,
-  resolveContextThresholds,
 } = require("../lib/shared");
 const { resolveInstallDir } = require("../lib/paths");
 const { WIDGET_TAGS } = require("../lib/widget-style");
+const { editFields: getEditFields } = require("../lib/widget-options");
 const { loadEditableConfig } = require("./config-guard");
 const {
   parseColor,
@@ -48,7 +49,7 @@ const {
   glyphName,
 } = require("../lib/powerline");
 
-const REPO_URL = "https://github.com/wassim-azi/agy-powerline";
+const { REPO_URL } = require("./repo-url");
 
 const CSI = "\x1b[";
 const RESET = `${CSI}0m`;
@@ -294,7 +295,15 @@ const TAB_OF_SCREEN = {
   glyphs: "powerline",
 };
 
-const PRESET_ICONS = { default: "🎯", compact: "⚡", workspace: "📂", limits: "🔋", full: "🚀" };
+const PRESET_ICONS = {
+  default: "🎯",
+  compact: "⚡",
+  agent: "🧠",
+  git: "🔀",
+  tokens: "📊",
+  quotas: "🔋",
+  full: "🚀",
+};
 
 // Set by renderFrame so tests can draw a screen at a fixed size.
 let columnsOverride = null;
@@ -408,6 +417,7 @@ function previewParts(width) {
   // The toggle keys work on the widget list, so only that screen names them.
   const key = (letter) => (screen === "main" ? letter : "");
   const chips = [
+    ui.chip("gaps", preview.rowGap, key("v")),
     ui.chip("emojis", preview.emojis, key("e")),
     ui.chip("minimal", preview.minimalist, key("m")),
     ui.chip("pace", preview.pacing, key("r")),
@@ -415,10 +425,7 @@ function previewParts(width) {
     ui.chip("ascii", preview.ascii, key("i")),
   ];
   if (preview.layout === "pills") {
-    chips.unshift(
-      ui.chip("joins", preview.powerline.enabled, key("j")),
-      ui.chip("gaps", preview.rowGap, key("v"))
-    );
+    chips.unshift(ui.chip("joins", preview.powerline.enabled, key("j")));
   }
 
   return { title, bar: String(rendered).split("\n"), chips: chips.join("   ") };
@@ -749,151 +756,14 @@ function drawMain() {
   });
 }
 
-// Widgets that take each option, as the layouts read them.
-const QUOTA_WIDGETS = new Set([
-  "quota",
-  "fiveHourBar",
-  "fiveHourPct",
-  "weeklyBar",
-  "weeklyPct",
-  "thirdPartyFiveHour",
-  "thirdPartyWeekly",
-  "argonWeekly",
-]);
-const PACED_WIDGETS = new Set([
-  "fiveHourBar",
-  "weeklyBar",
-  "thirdPartyFiveHour",
-  "thirdPartyWeekly",
-  "argonWeekly",
-]);
-const CONTEXT_WIDGETS = new Set(["context", "contextPct", "contextTokens"]);
-const RESET_WIDGETS = new Set(["fiveHourReset", "weeklyReset", "argonReset"]);
-const COLOR_SLOTS = ["model", "context", "git", "weekly", "thirdParty", "fiveHour", "meta"];
 // Longest custom badge text; the badge is meant to be a word or two.
 const TEXT_MAX = 40;
 
-const onOff = (value) => (value ? "on" : "off");
-
-// The options of one widget: cycle fields step through values, number fields
-// step by 5 with the arrows, text fields take typing, and fixed ones only show
-// their value. undefined means "not set": the widget follows the global
-// setting or its default.
 function editFields(widget) {
-  const quota = QUOTA_WIDGETS.has(widget.id);
-  const context = CONTEXT_WIDGETS.has(widget.id);
-  const thresholds = quota
-    ? resolveQuotaThresholds({}, config)
-    : context
-      ? resolveContextThresholds({}, config)
-      : null;
-  const fields = [
-    {
-      key: "color",
-      label: "Color",
-      values: [undefined, ...COLOR_SLOTS],
-      show: (value) => (value === undefined ? "theme default" : colorName(value)),
-      help: "Draws this widget in another of the theme's colors. Caution and danger colors still take over when a quota or the context runs low.",
-    },
-    {
-      key: "raw",
-      label: "Label",
-      values: [undefined, false, true],
-      show: (value) =>
-        value === undefined
-          ? `default (${config.minimalist ? "hidden" : "shown"})`
-          : value
-            ? "hidden, value only"
-            : "shown",
-      help: "Shows or hides the icon and label before the value. Default follows minimalist mode (m).",
-    },
-  ];
-
-  if (widget.id === "model") {
-    fields.push({
-      key: "short",
-      label: "Short name",
-      values: [undefined, true],
-      show: (value) => onOff(value),
-      help: "3.8 Flash·High instead of Gemini 3.8 Flash (High).",
-    });
-  }
-  if (widget.id === "totalTokens") {
-    fields.push({
-      key: "split",
-      label: "Split",
-      values: [undefined, true],
-      show: (value) => onOff(value),
-      help: "Input and output tokens apart (123.1K↑ 355.0K↓) instead of one total.",
-    });
-  }
-  if (RESET_WIDGETS.has(widget.id)) {
-    fields.push({
-      key: "format",
-      label: "Format",
-      values: [undefined, "time", "both"],
-      show: (value) => value ?? "countdown",
-      help: "countdown (2hr 47m), time (6:33pm) or both (6:33pm (2hr 47m)).",
-    });
-  }
-  if (widget.id === "customText") {
-    fields.push({
-      key: "text",
-      label: "Text",
-      text: true,
-      show: (value) => value || "(empty: hidden)",
-      help: "The badge's text. Enter to type, Enter again to keep it, Esc to cancel.",
-    });
-  }
-  if (widget.id === "exec") {
-    fields.push({
-      key: "cmd",
-      label: "Command",
-      fixed: true,
-      show: (value) => value || "(none)",
-      help: `The command runs only in agy, from your install folder. Edit it in ${getConfigPath()}.`,
-    });
-  }
-  if (thresholds) {
-    const what = quota ? "left" : "used";
-    fields.push(
-      {
-        key: "warn",
-        label: "Caution at",
-        number: thresholds.warn,
-        show: (value) => (value === undefined ? `default (${thresholds.warn}%)` : `${value}%`),
-        help: `Turns to the caution color at this share ${what}.`,
-      },
-      {
-        key: "crit",
-        label: "Danger at",
-        number: thresholds.crit,
-        show: (value) => (value === undefined ? `default (${thresholds.crit}%)` : `${value}%`),
-        help: `Turns to the danger color at this share ${what}.`,
-      },
-      {
-        key: "blink",
-        label: "Blink",
-        values: [undefined, true, "warn", false],
-        show: (value) =>
-          value === undefined
-            ? `default (${thresholds.blink ? "on" : "off"})`
-            : { true: "at danger", warn: "at caution and danger", false: "off" }[String(value)],
-        help: "Makes the widget blink when it reaches the danger (or caution) level. ASCII mode never blinks.",
-      }
-    );
-  }
-  if (PACED_WIDGETS.has(widget.id)) {
-    fields.push({
-      key: "pace",
-      label: "Pace marker",
-      values: [undefined, false, true],
-      show: (value) =>
-        value === undefined ? `default (${onOff(config.pacing !== false)})` : onOff(value),
-      help: "Marks where usage would be if it were spread evenly over the window. Default follows r.",
-    });
-  }
-  return fields;
+  return getEditFields(widget, config, {
+    colorName: (value) => (value === undefined ? "theme default" : colorName(value)),
+    cmdHelp: `The command runs only in agy, from your install folder. Edit it in ${getConfigPath()}.`,
+  });
 }
 
 // A theme slot's color name, in that color.
@@ -1165,20 +1035,37 @@ const toHex = (rgb) => `#${rgb.map((part) => part.toString(16).padStart(2, "0"))
 
 // One color as a pill in that color with the theme's pill text, the way the
 // bar draws it, then its hex value.
-function colorLine(label, rgb, ink) {
-  return { raw: `${ui.pill(` ${label.padEnd(9)}`, rgb, ink)}  ${dim(toHex(rgb))}` };
+function colorCell(label, rgb, ink) {
+  return `${ui.pill(` ${label.padEnd(9)}`, rgb, ink)}  ${dim(toHex(rgb))}`;
 }
 
-const PALETTE_SLOTS = [
-  ["model", "Model"],
-  ["context", "Context"],
-  ["git", "Git"],
-  ["weekly", "7d quota"],
-  ["meta", "Details"],
-  ["fiveHour", "OK"],
-  ["caution", "Caution"],
-  ["warn", "Danger"],
+// Widget colors on the left, states on the right; a blank line between rows
+// keeps the pills from touching.
+const PALETTE_ROWS = [
+  [
+    ["model", "Model"],
+    ["fiveHour", "OK"],
+  ],
+  [
+    ["context", "Context"],
+    ["caution", "Caution"],
+  ],
+  [
+    ["git", "Git"],
+    ["warn", "Danger"],
+  ],
+  [
+    ["weekly", "7d quota"],
+    ["meta", "Details"],
+  ],
 ];
+
+function paletteLines(colors) {
+  return PALETTE_ROWS.flatMap((row, index) => [
+    ...(index ? [""] : []),
+    { raw: row.map(([slot, label]) => colorCell(label, colors[slot], colors.text)).join("    ") },
+  ]);
+}
 
 function themeDetails(id) {
   if (id === "custom") {
@@ -1203,9 +1090,7 @@ function themeDetails(id) {
       ...(background ? [{ raw: `${dim("For")} ${ui.tag(background)}` }] : []),
       "",
       heading("Palette"),
-      ...PALETTE_SLOTS.map(([slot, label]) =>
-        colorLine(label, theme.colors[slot], theme.colors.text)
-      ),
+      ...paletteLines(theme.colors),
       "",
       heading("Sample"),
       ...themeSample(theme.colors),
@@ -1340,7 +1225,7 @@ const POWERLINE_HELP = {
   enabled:
     "On: adjacent widgets share one pill, with a separator between them. Off: every widget gets its own pill.",
   rowGap:
-    "Puts a blank line between Pills rows, so stacked pills don't touch. The bar takes more lines (three rows become five).",
+    "Puts a blank line between rows, in every layout, so stacked pills don't touch and text rows get more air. The bar takes more lines (three rows become five).",
   style: "Sets start caps, end caps and separators in one go. Enter cycles the styles.",
   separators: "Glyphs between widgets of a pill. With several, they cycle per join, left to right.",
   startCaps: "Glyphs that open each pill. With several, they cycle per pill, left to right.",
@@ -1369,7 +1254,7 @@ function powerlineDetails(row) {
 function drawPowerline() {
   const items = POWERLINE_ROWS.map((row) => ({ text: row.label, value: powerlineRowValue(row) }));
   const notes =
-    config.layout === "lines"
+    config.layout !== "pills"
       ? ["Powerline shapes apply to Pills. Switch layout with l."]
       : [
           "A style sets caps and separators together; edit a list to fine-tune it.",
@@ -1454,10 +1339,24 @@ function drawGlyphs() {
   });
 }
 
+// Three short paragraphs per layout, each under 90 columns so a wide panel
+// shows them unwrapped.
 const LAYOUT_HELP = {
-  pills: "Widgets sit in colored pills. The Powerline tab sets their caps, separators and joins.",
-  lines:
-    "Colored text on the terminal background, with dividers and dot meters. Powerline shapes don't apply.",
+  pills: [
+    "Widgets sit in colored pills, joined by powerline caps and separators.",
+    "Meters draw as small dots on the pill's color, with a larger dot as the pace marker.",
+    "The Powerline tab sets the caps, separators, joins and the space between rows.",
+  ],
+  lines: [
+    "Colored text on the terminal background, with thin │ dividers between widgets.",
+    "Meters draw as dots in the ok, caution or danger color, over a dim track.",
+    "Powerline shapes don't apply; the theme, widgets and space between rows do.",
+  ],
+  classic: [
+    "Colored text on the terminal background, with | dividers between widgets.",
+    "Meters draw as blocks in one color: █ filled, ░ empty and │ as the pace marker.",
+    "Powerline shapes don't apply; the theme, widgets and space between rows do.",
+  ],
 };
 
 function drawLayout() {
@@ -1471,10 +1370,9 @@ function drawLayout() {
   return screenFrame({
     title: "Layout",
     items,
-    notes: ["Both layouts use your widgets and theme; Powerline shapes apply to Pills."],
     details: hovered && {
       title: hovered.name,
-      lines: [`${hovered.description}.`, "", LAYOUT_HELP[hovered.id] ?? ""],
+      lines: LAYOUT_HELP[hovered.id].flatMap((line, i) => (i ? ["", line] : [line])),
     },
     keys: [
       [ui.glyph.upDown, "preview"],

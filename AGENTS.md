@@ -20,6 +20,8 @@ Run all of these from the repo root.
 | Render the bar with demo data | `node src/index.js render --demo`                                  |
 | Render a payload file         | `node src/index.js render < tests/fixtures/antigravity-1.3.0.json` |
 | Theme preview page            | `npm run gallery` (writes `gallery.html`, gitignored)              |
+| Theme screenshots (SVG)       | `npm run screenshots` (writes `screenshots/`, gitignored)          |
+| Demo GIF                      | `vhs scripts/demo/demo.tape` (writes `assets/demo.gif`)            |
 
 Suite names are the `registerSuite()` calls in `tests/shared.js` (e.g. `renderer`, `themes`, `security`, `snapshots`). Quote the ones with a space: `--test-name-pattern="install safety"`.
 
@@ -33,6 +35,7 @@ Suite names are the `registerSuite()` calls in `tests/shared.js` (e.g. `renderer
    - The README's languages are the ones with a `README.<lang>.md` file, plus those with an open translation issue. Don't add another language without an issue for it.
    - Every `README.<lang>.md` is a translation of the README: a row you add, change or remove in its presets, themes, widget or command tables gets the same change in each of them (ids and commands stay in English; an English description is fine), while their prose may lag behind. The `readme` suite fails when a README misses a widget, theme or preset id or a command.
    - A new translation adds itself to the language switcher on the first lines of **every** README and its file name to `files` in `.all-contributorsrc`. The `readme` suite fails when a README doesn't link every other one.
+   - A new command, widget, theme or preset also goes in the root `llms.txt`; the `readme` suite checks its IDs and command names.
    - The bar's own text (labels, captions) stays in English, since translating it isn't decided yet.
    - A new README translation comes from a native or fluent speaker: drafting it with AI is fine, but they review every line themselves and say so in the PR.
    - `SECURITY.md` if you added a process, a file write or a network call.
@@ -42,7 +45,7 @@ Suite names are the `registerSuite()` calls in `tests/shared.js` (e.g. `renderer
 ## Code map
 
 - `src/index.js`: CLI entry; argument parsing with Node's `util.parseArgs` (`COMMANDS` table at the top). It also implements `render` itself (`renderFromStdin()`).
-- `src/cli/*.js`: one file per other command (`init`, `configure`, `theme`, `layout`, `preset`, `caps`, `doctor`, `report`, `uninstall`), plus `bundle.js` (builds the one-file installed runtime), `tui-style.js` (the configure TUI's panels, tabs and keycaps) and `config-guard.js` (refuses to save over a config with a JSON error).
+- `src/cli/*.js`: one file per other command (`init`, `configure`, `theme`, `gradient`, `layout`, `preset`, `caps`, `export`, `import`, `doctor`, `report`, `uninstall`), plus `bundle.js` (builds the one-file installed runtime), `tui-style.js` (the configure TUI's panels, tabs and keycaps) and `config-guard.js` (refuses to save over a config with a JSON error).
 - `src/runtime/statusline.js`: the script Antigravity runs on every refresh.
 - `src/lib/shared.js`: `renderStatusline()`, the rendering entry point.
 - `src/lib/session.js`: turns the Antigravity payload into a normalized `session` object; `git.js` reads branch, dirty state and ahead/behind.
@@ -56,7 +59,7 @@ Suite names are the `registerSuite()` calls in `tests/shared.js` (e.g. `renderer
 - `src/lib/log.js`: the local problem log; `payload-dump.js`: privacy-safe payload dumps; `mock-data.js`: the `render --demo` sample payload; `run.js`: runs a command and captures its output (doctor's live check); `prompt.js`: yes/no prompts for `init` and `uninstall`.
 - `tests/shared/*.test.js`: cross-platform suites; `tests/platform/`: launcher tests per OS; `tests/snapshots/`: expected output; `tests/fixtures/`: sample payloads.
 - `docs/`: user docs beyond the README (`configuration.md`, `install.md`, `troubleshooting.md`).
-- `scripts/gallery/`: the `npm run gallery` theme preview; `scripts/hooks/`: the git hooks (`.githooks/` points at them).
+- `scripts/gallery/`: the `npm run gallery` theme preview and `npm run screenshots`; `scripts/hooks/`: the git hooks (`.githooks/` points at them); `scripts/release/`: the plugin archives `release.yml` attaches to each release; `scripts/demo/`: the [VHS](https://github.com/charmbracelet/vhs) tape that records `assets/demo.gif`.
 
 The installed runtime is a **copy**: `init` joins `src/runtime/statusline.js` and the files listed in `RUNTIME_FILES` (`src/lib/paths.js`) into one `~/.agy-powerline/statusline.js` (`src/cli/bundle.js`), because Node opens one file much faster than many. If runtime code needs a new file in `src/lib/`, add it to `RUNTIME_FILES`. The runtime must never require `src/cli/` or anything outside that list; inside the bundle such a require fails.
 
@@ -78,7 +81,7 @@ These protect users' machines. Don't relax them, and if a task seems to require 
 ## Testing rules
 
 - Tests report through `record(name, ok, detail)` from `tests/helpers.js`; each suite exports `async run()` and is registered with `registerSuite()` in `tests/shared.js`. Follow that pattern for new tests.
-- **Never touch the real home directory.** Tests that run the CLI must use a temp dir and override `HOME`, `USERPROFILE` and `AGY_POWERLINE_HOME`; see `sandbox()` in `tests/shared/install-safety.test.js`. This also applies when you run CLI commands by hand: `theme`, `layout`, `preset`, `caps`, `init` and `uninstall` write to the real `~/.agy-powerline` and Antigravity settings otherwise.
+- **Never touch the real home directory.** Tests that run the CLI must use a temp dir and override `HOME`, `USERPROFILE` and `AGY_POWERLINE_HOME`; see `sandbox()` in `tests/shared/install-safety.test.js`. This also applies when you run CLI commands by hand: `theme`, `gradient`, `layout`, `preset`, `caps`, `import`, `init` and `uninstall` write to the real `~/.agy-powerline` and Antigravity settings otherwise.
 - Don't run `node src/index.js configure`: it's an interactive TUI and will hang. To check a configure screen, render it with `renderFrame()` the way `tests/shared/tui.test.js` does.
 - Never edit files in `tests/snapshots/` by hand; regenerate them with `npm run test:update`.
 - Snapshot rendering pins time, timezone and RAM (`frozen()`) and the terminal width (`inputs()`), both in `tests/shared/snapshots.test.js`. New widgets that read the clock or the machine must stay deterministic there.
@@ -123,7 +126,7 @@ Most outside pull requests are written with an AI agent. These rules keep them m
   - One line per change, written for users, under the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) heading that fits (`### Added`, `### Changed`, `### Fixed`, `### Removed`, `### Security`), ending with the issue or PR number when there is one, e.g. `- Battery widget shows charging state (#42)`. The release notes are written from these lines.
 - **Contributor credits are the maintainer's job.** When merging an outside contribution, the maintainer adds the credit to its changelog line, `(#42, thanks @login)`, and runs `npx all-contributors-cli@6.26.1 add <login> <types>` (types such as `code`, `doc`, `design`, `translation`), which updates `.all-contributorsrc` and the table between the `ALL-CONTRIBUTORS-LIST` markers in every README listed in its `files`; both files go in one commit. A pull request doesn't touch either, except that a new README translation copies the table as it is and adds its file name to `files` in `.all-contributorsrc`. `.github/workflows/thanks.yml` thanks the contributor on merge.
 - Don't change `version` in `package.json`; the maintainer sets it at release time.
-- Never commit `gallery.html`, `node_modules/`, coverage output or `.tgz` files.
+- Never commit `gallery.html`, `screenshots/`, `node_modules/`, coverage output or `.tgz` files.
 - PR description: what changed and why, `Fixes #<issue>` if relevant, the commands you ran, and a screenshot or snapshot diff for visual changes.
 
 ## Security reports

@@ -13,6 +13,15 @@ const SYNC_CACHE_NAME = ".git-sync-cache.json";
 const SYNC_CACHE_MAX = 20;
 const COMMIT = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 
+// A git call that runs past its time is skipped until a later refresh. Tests
+// give git more time: on a busy CI machine a plain call can take longer.
+const timeouts = { sync: 150, detail: 300 };
+function setGitTimeouts(next) {
+  const previous = { ...timeouts };
+  Object.assign(timeouts, next);
+  return previous;
+}
+
 // Only an absolute folder that exists can belong to the user's session. A
 // relative path (a Windows path read on Linux, for one) resolves against
 // wherever this process runs, and the upward walk would then report that
@@ -89,6 +98,84 @@ function gitHasDirtyMarkers(gitDir) {
   });
 }
 
+function readText(file) {
+  try {
+    return fs.readFileSync(file, "utf8").trim();
+  } catch {
+    return null;
+  }
+}
+
+function pathExists(file) {
+  try {
+    fs.accessSync(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const STEP_MAX = 100000;
+
+// The repo controls these files: only a plain whole number in range counts.
+function readStep(file) {
+  const text = readText(file);
+  const n = text !== null && /^\d{1,6}$/.test(text) ? Number(text) : 0;
+  return n >= 1 && n <= STEP_MAX ? n : null;
+}
+
+// What an unfinished rebase keeps, by backend: [folder, step file, total file].
+const REBASE_STATES = [
+  ["rebase-merge", "msgnum", "end"],
+  ["rebase-apply", "next", "last"],
+];
+
+// Checked in this order after a rebase or `git am`; the first one found wins.
+const OPERATION_MARKERS = [
+  ["MERGE_HEAD", "merge"],
+  ["CHERRY_PICK_HEAD", "cherry-pick"],
+  ["REVERT_HEAD", "revert"],
+  ["BISECT_LOG", "bisect"],
+];
+
+// The operation git is in the middle of in this worktree, from files only:
+// { name, step, total, folder } or null. A linked worktree keeps these in its
+// own git dir, which findGitDir() returns.
+function readOperation(gitDir) {
+  for (const [folder, stepFile, totalFile] of REBASE_STATES) {
+    const dir = path.join(gitDir, folder);
+    let name = folder === "rebase-merge" || pathExists(path.join(dir, "rebasing")) ? "rebase" : "";
+    if (!name && pathExists(path.join(dir, "applying"))) {
+      name = "am";
+    }
+    if (!name || !pathExists(dir)) {
+      continue;
+    }
+    const step = readStep(path.join(dir, stepFile));
+    const total = readStep(path.join(dir, totalFile));
+    const counted = step !== null && total !== null;
+    return { name, step: counted ? step : null, total: counted ? total : null, folder };
+  }
+
+  for (const [file, name] of OPERATION_MARKERS) {
+    if (pathExists(path.join(gitDir, file))) {
+      return { name, step: null, total: null, folder: "" };
+    }
+  }
+
+  return null;
+}
+
+// A rebase detaches HEAD; the branch being rebased is named in head-name.
+function rebasedBranch(gitDir, operation) {
+  if (operation?.name !== "rebase") {
+    return "";
+  }
+  const ref = readText(path.join(gitDir, operation.folder, "head-name")) || "";
+  const branch = ref.startsWith("refs/heads/") ? ref.slice("refs/heads/".length) : "";
+  return isSafeBranchName(branch) ? branch : "";
+}
+
 function getGitInfo(cwd) {
   if (!cwd) {
     return null;
@@ -102,12 +189,13 @@ function getGitInfo(cwd) {
     }
 
     const head = fs.readFileSync(path.join(gitDir, "HEAD"), "utf8").trim();
+    const operation = readOperation(gitDir);
     let branch = "";
 
     if (head.startsWith("ref: ")) {
       branch = head.replace(/^ref:\s+refs\/heads\//, "").replace(/^ref:\s+/, "");
     } else if (head) {
-      branch = head.slice(0, 7);
+      branch = rebasedBranch(gitDir, operation) || head.slice(0, 7);
     }
 
     if (!branch) {
@@ -121,6 +209,11 @@ function getGitInfo(cwd) {
       dirty: gitHasDirtyMarkers(gitDir),
       ahead: sync.ahead,
       behind: sync.behind,
+      operation: operation && {
+        name: operation.name,
+        step: operation.step,
+        total: operation.total,
+      },
     };
   } catch {
     return null;
@@ -304,10 +397,11 @@ function getGitSync(gitDir, branch) {
     const { execFileSync } = require("child_process");
     const out = execFileSync(
       "git",
-      ["rev-list", "--left-right", "--count", `${branch}...@{upstream}`, "--"],
+      // The branch's own upstream: during a rebase HEAD is detached and has none.
+      ["rev-list", "--left-right", "--count", `${branch}...${branch}@{upstream}`, "--"],
       {
         cwd: path.dirname(gitDir),
-        timeout: 150,
+        timeout: timeouts.sync,
         stdio: ["ignore", "pipe", "ignore"],
         encoding: "utf8",
         // Antigravity may run the statusline without a console; without this,
@@ -329,13 +423,286 @@ function getGitSync(gitDir, branch) {
     // A timeout or missing git is worth knowing about when ahead/behind
     // counts never show.
     if (err.code === "ETIMEDOUT" || err.signal === "SIGTERM") {
-      logWarning("GIT_TIMEOUT", { timeoutMs: 150 });
+      logWarning("GIT_TIMEOUT", { timeoutMs: timeouts.sync });
     } else if (err.code === "ENOENT") {
       logWarning("GIT_NOT_FOUND");
     }
   }
 
   return { ahead: 0, behind: 0 };
+}
+
+// Working-tree details for the gitChanges, gitFiles, gitSha, gitStash and
+// gitWorktree widgets. SHA, stash and worktree come from files; file and line
+// counts need `git status` / `git diff`, so those run only for the widgets
+// that show them and are reused for STATUS_TTL_MS per repo and commit.
+const DETAIL_NEEDS = {
+  gitChanges: "diff",
+  gitFiles: "status",
+  gitSha: "sha",
+  gitStash: "stash",
+  gitWorktree: "worktree",
+};
+const STATUS_CACHE_NAME = ".git-status-cache.json";
+const STATUS_CACHE_MAX = 20;
+const STATUS_TTL_MS = 5000;
+
+// No optional locks: the bar must never hold the index lock and make the
+// user's own git commands fail. The -c flags and the submodule skip keep git
+// from starting programs named in the repo's own config.
+const STATUS_ARGS = [
+  "--no-optional-locks",
+  "-c",
+  "core.fsmonitor=false",
+  "-c",
+  "core.untrackedCache=false",
+  "status",
+  "--porcelain=v2",
+  "-z",
+  "--ignore-submodules=all",
+];
+const DIFF_ARGS = [
+  "--no-optional-locks",
+  "-c",
+  "core.fsmonitor=false",
+  "diff",
+  "--shortstat",
+  "--no-ext-diff",
+  "--no-textconv",
+  "--ignore-submodules=all",
+  "HEAD",
+  "--",
+];
+
+// A repo opened from an archive controls its own .git/config, and git status
+// and diff run the programs it names: filters on changed files, diff drivers,
+// fsmonitor hooks, and anything an included file adds. A repo config with any
+// of these is read for SHA, stash and worktree only; git itself isn't started.
+const RISKY_CONFIG = /^\s*(\[\s*(filter|include|includeif|diff)\b|fsmonitor\s*=)/im;
+
+const statusMemory = new Map();
+
+function hasRiskyRepoConfig(gitDir, commonDir) {
+  const files = [path.join(commonDir, "config"), path.join(gitDir, "config.worktree")];
+  if (gitDir !== commonDir) {
+    files.push(path.join(commonDir, "config.worktree"));
+  }
+  return files.some((file) => {
+    try {
+      return RISKY_CONFIG.test(fs.readFileSync(file, "utf8"));
+    } catch {
+      return false;
+    }
+  });
+}
+
+// The branch checked out and its commit ("" before the first commit).
+function readHead(gitDir, commonDir) {
+  let head;
+  try {
+    head = fs.readFileSync(path.join(gitDir, "HEAD"), "utf8").trim();
+  } catch {
+    return { branch: "", commit: "" };
+  }
+  if (COMMIT.test(head)) {
+    return { branch: head.slice(0, 7), commit: head };
+  }
+  const ref = head.replace(/^ref:\s+/, "");
+  const branch = ref.replace(/^refs\/heads\//, "");
+  if (!ref.startsWith("refs/heads/") || !isSafeBranchName(branch)) {
+    return { branch: "", commit: "" };
+  }
+  const commit = readRef(commonDir, ref);
+  return { branch, commit: COMMIT.test(commit) ? commit : "" };
+}
+
+// One line per stash in the stash reflog.
+function stashCount(commonDir) {
+  try {
+    const text = fs.readFileSync(path.join(commonDir, "logs", "refs", "stash"), "utf8");
+    return Math.min(text.split("\n").filter((line) => line.trim()).length, 99999);
+  } catch {
+    return 0;
+  }
+}
+
+// A linked worktree's git dir is <main>/.git/worktrees/<name>.
+function worktreeName(gitDir, commonDir) {
+  if (gitDir === commonDir || path.basename(path.dirname(gitDir)) !== "worktrees") {
+    return "";
+  }
+  return path.basename(gitDir);
+}
+
+// Porcelain v2 with -z: "1 XY ..." and "2 XY ..." (a rename, followed by its
+// old path as its own entry), "u XY ..." for conflicts, "? path" for untracked.
+function parseStatus(out) {
+  const files = { staged: 0, modified: 0, untracked: 0, conflicts: 0 };
+  const entries = String(out).split("\0");
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const kind = entry[0];
+    if (kind === "1" || kind === "2") {
+      if (entry[2] !== ".") files.staged++;
+      if (entry[3] !== ".") files.modified++;
+      if (kind === "2") i++;
+    } else if (kind === "u") {
+      files.conflicts++;
+    } else if (kind === "?") {
+      files.untracked++;
+    }
+  }
+  return files;
+}
+
+// " 3 files changed, 128 insertions(+), 34 deletions(-)"; nothing when clean.
+function parseShortstat(out) {
+  const text = String(out);
+  const number = (pattern) => parseInt(text.match(pattern)?.[1] ?? "0", 10) || 0;
+  return { added: number(/(\d+) insertions?\(\+\)/), removed: number(/(\d+) deletions?\(-\)/) };
+}
+
+function runGitDetail(cwd, args) {
+  try {
+    const { execFileSync } = require("child_process");
+    return execFileSync("git", args, {
+      cwd,
+      timeout: timeouts.detail,
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf8",
+      maxBuffer: 16 * 1024 * 1024,
+      windowsHide: true,
+    });
+  } catch (err) {
+    if (err.code === "ETIMEDOUT" || err.signal === "SIGTERM") {
+      logWarning("GIT_TIMEOUT", { timeoutMs: timeouts.detail });
+    } else if (err.code === "ENOENT") {
+      logWarning("GIT_NOT_FOUND");
+    }
+    return null;
+  }
+}
+
+function statusCachePath() {
+  const sync = syncCachePath();
+  return sync ? path.join(path.dirname(sync), STATUS_CACHE_NAME) : null;
+}
+
+const DETAIL_FIELDS = {
+  files: ["staged", "modified", "untracked", "conflicts"],
+  changes: ["added", "removed"],
+};
+
+// The cache file can be edited or torn like any file; only whole counts count.
+function validDetail(field, cached) {
+  const v = cached?.v;
+  return (
+    typeof cached?.t === "number" &&
+    v !== null &&
+    typeof v === "object" &&
+    DETAIL_FIELDS[field].every(
+      (name) => Number.isInteger(v[name]) && v[name] >= 0 && v[name] <= 1e9
+    )
+  );
+}
+
+// A fresh entry is used as is; when git fails, an older one for the same repo
+// and commit is still better than nothing.
+function cachedDetail(key, field, compute) {
+  const now = Date.now();
+  const file = statusCachePath();
+  let entry = statusMemory.get(key);
+  if (!entry?.[field] && file) {
+    entry = readSyncCache(file)[key];
+  }
+  const cached = validDetail(field, entry?.[field]) ? entry[field] : null;
+  if (cached && now - cached.t < STATUS_TTL_MS) {
+    return cached.v;
+  }
+
+  const value = compute();
+  if (value === null) {
+    return cached?.v ?? null;
+  }
+
+  const previous = entry && typeof entry === "object" && !Array.isArray(entry) ? entry : {};
+  const next = { ...previous, [field]: { t: now, v: value } };
+  statusMemory.set(key, next);
+  if (file) {
+    try {
+      const cache = readSyncCache(file);
+      delete cache[key];
+      cache[key] = next;
+      const kept = Object.fromEntries(Object.entries(cache).slice(-STATUS_CACHE_MAX));
+      writeFileAtomic(file, JSON.stringify(kept), { mode: PRIVATE_FILE_MODE });
+    } catch {
+      // Best effort: the next refresh runs git again.
+    }
+  }
+  return value;
+}
+
+function getGitDetails(cwd, needs = {}) {
+  try {
+    const gitDir = findGitDir(cwd);
+    if (!gitDir) {
+      return null;
+    }
+    const commonDir = commonGitDir(gitDir);
+    const { branch, commit } = readHead(gitDir, commonDir);
+    const details = { branch };
+
+    if (needs.sha) {
+      details.sha = commit.slice(0, 7);
+    }
+    if (needs.stash) {
+      details.stash = stashCount(commonDir);
+    }
+    if (needs.worktree) {
+      details.worktree = worktreeName(gitDir, commonDir);
+    }
+
+    const wantsGit = needs.status || (needs.diff && commit);
+    if (wantsGit && hasRiskyRepoConfig(gitDir, commonDir)) {
+      logWarning("GIT_CONFIG_SKIPPED");
+      return details;
+    }
+
+    const key = `${gitDir}\0${commit || "unborn"}`;
+    if (needs.status) {
+      details.files = cachedDetail(key, "files", () => {
+        const out = runGitDetail(cwd, STATUS_ARGS);
+        return out === null ? null : parseStatus(out);
+      });
+    }
+    if (needs.diff && commit) {
+      details.changes = cachedDetail(key, "changes", () => {
+        const out = runGitDetail(cwd, DIFF_ARGS);
+        return out === null ? null : parseShortstat(out);
+      });
+    }
+    return details;
+  } catch {
+    return null;
+  }
+}
+
+// Only what the configured widgets show is read.
+function resolveGitDetails(data, config) {
+  const needs = {};
+  for (const widget of config?.widgets ?? []) {
+    if (DETAIL_NEEDS[widget?.id]) {
+      needs[DETAIL_NEEDS[widget.id]] = true;
+    }
+  }
+  if (!Object.keys(needs).length) {
+    return null;
+  }
+  return getGitDetails(firstText(data?.cwd, data?.workspace?.current_dir), needs);
+}
+
+function clearGitDetailsCache() {
+  statusMemory.clear();
 }
 
 // The bar uses vcs.branch and vcs.dirty from Antigravity's payload. Ahead and
@@ -369,6 +736,7 @@ function resolveGit(data, config) {
       ...fromPayload,
       ahead: same ? local.ahead : 0,
       behind: same ? local.behind : 0,
+      operation: same ? local.operation : null,
     };
   }
 
@@ -378,6 +746,7 @@ function resolveGit(data, config) {
       dirty: Boolean(local.dirty || fromPayload?.dirty),
       ahead: local.ahead,
       behind: local.behind,
+      operation: local.operation,
     };
   }
 
@@ -388,6 +757,7 @@ function resolveGit(data, config) {
 module.exports = {
   findGitDir,
   getGitInfo,
+  readOperation,
   getGitSync,
   isSafeBranchName,
   GIT_DIRTY_MARKERS,
@@ -395,4 +765,15 @@ module.exports = {
   vcsFromPayload,
   resolveGit,
   SYNC_CACHE_NAME,
+  STATUS_CACHE_NAME,
+  STATUS_TTL_MS,
+  STATUS_ARGS,
+  DIFF_ARGS,
+  hasRiskyRepoConfig,
+  parseStatus,
+  parseShortstat,
+  getGitDetails,
+  resolveGitDetails,
+  clearGitDetailsCache,
+  setGitTimeouts,
 };

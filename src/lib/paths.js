@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -25,6 +27,7 @@ const RUNTIME_FILES = [
   "fit.js",
   "log.js",
   "payload-dump.js",
+  "usage.js",
   path.join("layouts", "lines.js"),
   path.join("layouts", "pills.js"),
 ];
@@ -34,10 +37,17 @@ const RUNTIME_FILES = [
 // machine can't read them (Windows profile folders are private already).
 const PRIVATE_FILES = [
   "statusline.config.json",
+  // The config before the last import (BACKUP_SUFFIX in cli/import.js).
+  "statusline.config.json.bak",
   ".exec-cache.json",
   "last-payload.json",
   // SYNC_CACHE_NAME in git.js: commit IDs of the repos you work in.
   ".git-sync-cache.json",
+  // STATUS_CACHE_NAME in git.js: repo paths with their file and line counts.
+  ".git-status-cache.json",
+  // USAGE_CACHE_NAME in usage.js: tokens per day, keyed by a hash of each
+  // conversation database's path.
+  ".usage-cache.json",
   // LOG_NAME in log.js, spelled out because log.js requires this file.
   "agy-powerline.log",
 ];

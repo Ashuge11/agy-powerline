@@ -65,7 +65,7 @@ function testStateCues() {
   const same = strip(renderFrame({ config: defaultConfig(), screen: "presets" }));
   record(
     "the preset matching the widgets is marked current, and its rows show the widget icons",
-    /Everyday\S* +● current/.test(presets) && /🤖 Model · 💾 Context Bar/.test(presets)
+    /Default\S* +● current/.test(presets) && /🤖 Model · 💾 Context Bar/.test(presets)
   );
   record(
     "the preview title says when it shows a preset, theme or layout that isn't applied",
@@ -79,6 +79,29 @@ function testStateCues() {
       !/preview, enter to apply/.test(
         strip(renderFrame({ config: defaultConfig(), screen: "themes", cursor: 0 }))
       )
+  );
+
+  // Each layout's details: three lines under 90 columns, a blank line between them.
+  const layoutDetails = [0, 1, 2].map((cursor) => {
+    const frame = strip(
+      renderFrame({ config: defaultConfig(), screen: "layout", cursor, columns: 200 })
+    );
+    const rows = frame.split("\n");
+    const top = rows.findIndex((line) => /╮ ╭─ /.test(line));
+    const bottom = rows.findIndex((line, i) => i > top && /╰/.test(line));
+    return rows
+      .slice(top + 1, bottom)
+      .map((line) => line.slice(line.indexOf("│ │") + 4, -1).trim());
+  });
+  record(
+    "each layout's details are three lines under 90 columns, separated by blank lines",
+    layoutDetails.every(
+      (panel) =>
+        panel.length === 5 &&
+        [0, 2, 4].every((i) => panel[i].length > 0 && panel[i].length <= 90) &&
+        [1, 3].every((i) => panel[i] === "")
+    ),
+    JSON.stringify(layoutDetails)
   );
 
   const themes = strip(renderFrame({ config: defaultConfig(), screen: "themes", columns: 160 }));
@@ -105,6 +128,16 @@ function testWidgetEditor() {
   // A selected label sits between the pill's round ends, hence the `.?`.
   const model = edit(0);
   const bar = edit(1, { cursor: 2 });
+  const showBelow = edit(1, { cursor: 5 });
+  const context = strip(
+    renderFrame({
+      config: { ...defaultConfig(), widgets: [{ id: "contextPct" }] },
+      screen: "edit",
+      editIndex: 0,
+      cursor: 5,
+      columns: 160,
+    })
+  );
   record(
     "Enter on a widget opens its options, with the values it has set",
     /Edit · 🤖 Model/.test(model) &&
@@ -113,9 +146,17 @@ function testWidgetEditor() {
       /Caution at.? +25%/.test(bar) &&
       /Danger at.? +default \(10%\)/.test(bar) &&
       /Pace marker/.test(bar) &&
+      /Meter.? +theme default/.test(bar) &&
       /Format.? +countdown/.test(edit(2)) &&
       /Text.? +Prod/.test(edit(3)) &&
       /Command.? +echo hi/.test(edit(4))
+  );
+  record(
+    "configure shows the quota and context visibility options and help",
+    /Show below.? +always/.test(showBelow) &&
+      /this share or less is left/.test(showBelow) &&
+      /Show above.? +always/.test(context) &&
+      /this share or more is used/.test(context)
   );
   record(
     "the editor explains the selected option and draws the widget with it",
@@ -257,7 +298,7 @@ function testWidthTiers() {
     /╮ ╭─ 🤖 Model ─/.test(wide) &&
       /The model in use\./.test(wide) &&
       /IN PRESETS/.test(wide) &&
-      /\ue0b6Everyday\ue0b4/.test(wide) &&
+      /\ue0b6Default\ue0b4/.test(wide) &&
       !/IN PRESETS/.test(narrow)
   );
 
@@ -342,7 +383,7 @@ function testScreenContent() {
   const presets = strip(renderFrame({ config: defaultConfig(), screen: "presets", cursor: 1 }));
   record(
     "presets screen previews the hovered preset",
-    /One line/.test(presets) && /Quota: 7d/.test(presets)
+    /Compact/.test(presets) && /Quota: 7d/.test(presets)
   );
 
   const ok = strip(renderFrame({ config: defaultConfig(), flash: "Saved" }));

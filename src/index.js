@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+"use strict";
 
 const fs = require("fs");
 const path = require("path");
@@ -9,6 +10,9 @@ const { themeCommand } = require("./cli/theme");
 const { layoutCommand } = require("./cli/layout");
 const { presetCommand } = require("./cli/preset");
 const { capsCommand } = require("./cli/caps");
+const { gradientCommand } = require("./cli/gradient");
+const { exportCommand } = require("./cli/export");
+const { importCommand } = require("./cli/import");
 const { doctorCommand } = require("./cli/doctor");
 const { uninstallCommand } = require("./cli/uninstall");
 const { reportCommand } = require("./cli/report");
@@ -45,6 +49,17 @@ const COMMANDS = [
         type: "string",
         value: "<lines>",
         help: "set padding blank lines above statusline",
+      },
+      preset: {
+        type: "string",
+        value: "<id>",
+        help: "start from this widget preset (skips the question)",
+      },
+      layout: { type: "string", value: "<id>", help: "use this layout (skips the question)" },
+      theme: {
+        type: "string",
+        value: "<id>",
+        help: "use this theme, or dark, light, colorblind (skips the question)",
       },
     },
     run: (_arg, opts) =>
@@ -87,7 +102,8 @@ const COMMANDS = [
   {
     name: "preset",
     arg: "[name]",
-    description: "View or apply a widget preset (default, compact, workspace, limits, full)",
+    description:
+      "View or apply a widget preset (default, compact, agent, git, tokens, quotas, full)",
     options: {
       list: { type: "boolean", short: "l", help: "list all available presets" },
     },
@@ -102,6 +118,42 @@ const COMMANDS = [
       list: { type: "boolean", short: "l", help: "list all available cap styles" },
     },
     run: (arg, opts) => capsCommand(arg, opts),
+  },
+  {
+    name: "gradient",
+    arg: "[name]",
+    description:
+      "View or set a gradient across each row (a preset, hex colors like #ff5f6d-#ffc371, or off)",
+    options: {
+      list: { type: "boolean", short: "l", help: "list all gradient presets with a preview" },
+    },
+    run: (arg, opts) => gradientCommand(arg, opts),
+  },
+  {
+    name: "export",
+    arg: "[file]",
+    description: "Write your config to a file (or to stdout without one) to back it up or share it",
+    options: {
+      force: { type: "boolean", help: "replace the file if it already exists" },
+    },
+    run: (arg, opts) => exportCommand(arg, opts),
+  },
+  {
+    name: "import",
+    arg: "<file>",
+    description: "Load a config from a file, after showing what changes",
+    options: {
+      merge: {
+        type: "boolean",
+        help: "change only the settings the file has (default: replace the whole config)",
+      },
+      yes: { type: "boolean", short: "y", help: "apply without asking" },
+      "allow-exec": {
+        type: "boolean",
+        help: "accept the shell commands (exec widgets) the file adds; --yes alone doesn't",
+      },
+    },
+    run: (arg, opts) => importCommand(arg, opts),
   },
   {
     name: "doctor",

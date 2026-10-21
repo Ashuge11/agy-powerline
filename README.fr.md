@@ -2,14 +2,17 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | **Français**
 
-[![CI](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml/badge.svg)](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/npm/v/agy-powerline.svg)](https://www.npmjs.com/package/agy-powerline)
-[![Downloads](https://img.shields.io/npm/dt/agy-powerline.svg)](https://www.npmjs.com/package/agy-powerline)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-informational.svg)](https://nodejs.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-informational.svg)](docs/install.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#confidentialité-et-sécurité)
+[![Downloads](https://img.shields.io/npm/d18m/agy-powerline.svg?cacheSeconds=86400)](https://www.npmjs.com/package/agy-powerline)
+[![Stars](https://img.shields.io/github/stars/wassim-azi/agy-powerline?style=flat&color=gold&cacheSeconds=86400)](https://github.com/wassim-azi/agy-powerline/stargazers)
+[![CI](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml/badge.svg)](https://github.com/wassim-azi/agy-powerline/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/wassim-azi/agy-powerline/actions/workflows/codeql.yml/badge.svg)](https://github.com/wassim-azi/agy-powerline/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/wassim-azi/agy-powerline/badge)](https://scorecard.dev/viewer/?uri=github.com/wassim-azi/agy-powerline)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15655/badge)](https://www.bestpractices.dev/projects/15655)
+[![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#confidentialité-et-sécurité)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-0078D6.svg)](docs/install.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Web Configurator](https://img.shields.io/badge/web%20configurator-live-00dc82.svg)](https://agy-powerline.com/configure/)
 [![Mentioned in Awesome Gemini CLI](https://img.shields.io/badge/mentioned%20in-awesome-fc60a8.svg?logo=awesomelists&logoColor=white)](https://github.com/Piebald-AI/awesome-gemini-cli)
 
 > > **Remarque :** cette traduction peut ne pas être à jour. En cas de divergence, la [version anglaise](README.md) fait foi. La documentation détaillée ([`docs/`](docs/)) n’existe qu’en anglais.
@@ -19,7 +22,7 @@
 Consultez d’un coup d’œil le modèle utilisé, les quotas Gemini sur 5h/7d, ceux de Claude/GPT et d’Argon, la fenêtre de contexte, la branche Git et bien plus encore. Choisissez les widgets, les thèmes et la disposition dans un éditeur interactif. Une seule commande suffit pour l’installation, sans aucune dépendance.
 
 <p align="center">
-  <img src="assets/screenshots/pills-dark.png" alt="Disposition Pills d’agy-powerline avec le thème dark-ocean : état de l’agent, modèle, plan, projet et Git ; contexte ; quotas sur 5h et 7d avec leurs réinitialisations" width="850">
+  <img src="assets/demo.gif" alt="configure d’agy-powerline : ajout du quota hebdomadaire d’Argon en tapant argon, puis parcours des préréglages, des thèmes et des dispositions avec un aperçu en direct de la barre, et ouverture de l’onglet Powerline" width="850">
 </p>
 
 ## Installation
@@ -33,6 +36,15 @@ agy                           # start Antigravity
 ```
 
 Avant de remplacer quoi que ce soit, `init` demande confirmation et sauvegarde le fichier `settings.json` d’Antigravity. Redémarrez `agy` une fois après l’exécution de `init`. Pour en savoir plus, consultez [le fonctionnement de `init`](docs/install.md).
+
+<details>
+<summary>Capture : la barre dans une vraie session agy (Windows Terminal)</summary>
+
+<p align="center">
+  <img src="assets/screenshots/windows.png" alt="agy-powerline sous la zone de saisie d’agy dans Windows Terminal : une courte conversation au-dessus, la barre Pills sur trois lignes en dessous" width="850">
+</p>
+
+</details>
 
 Vous pouvez aussi laisser agy effectuer l’installation : collez cette instruction dans une session `agy`.
 
@@ -54,13 +66,15 @@ Les modifications s’appliquent à une session `agy` en cours lors de l’actua
 
 Choisissez un préréglage comme point de départ, puis personnalisez-le :
 
-| Préréglage  | Informations affichées                                                                                    |
-| ----------- | --------------------------------------------------------------------------------------------------------- |
-| `default`   | Modèle, contexte et Git ; quotas sur 5h et 7d avec leurs réinitialisations sur une deuxième ligne         |
-| `compact`   | Une seule ligne : nom abrégé du modèle, quota le plus proche de sa limite, pourcentage du contexte et Git |
-| `workspace` | Projet, Git, état de l’agent et modèle ; contexte, quota le plus proche de sa limite et mode              |
-| `limits`    | Tous les quotas (5h, 7d, modèles tiers, Argon), un par ligne                                              |
-| `full`      | Toutes les informations : session, projet et Git ; contexte, tokens et cache ; les deux quotas            |
+| Préréglage | Informations affichées                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `default`  | Modèle, contexte et Git ; quotas sur 5h et 7d avec leurs réinitialisations sur une deuxième ligne                     |
+| `compact`  | Une seule ligne : nom abrégé du modèle, quota le plus proche de sa limite, pourcentage du contexte et Git             |
+| `agent`    | État de l’agent, sous-agents, titre, mode, sandbox ; modèle, contexte %, artefacts, quota le plus proche de sa limite |
+| `git`      | Projet, branche, worktree, stash ; nombre de fichiers, lignes modifiées, commit                                       |
+| `tokens`   | Tokens du contexte, tokens de la session en entrée et en sortie, cache ; tokens du jour et des 7 derniers jours       |
+| `quotas`   | Forfait et modèle ; quotas sur 5h et 7d côte à côte ; modèles tiers et Argon sur une troisième ligne                  |
+| `full`     | Toutes les informations : session, projet et Git ; contexte, tokens et cache ; les deux quotas                        |
 
 ### Thèmes
 
@@ -78,54 +92,93 @@ Prévisualisez tous les thèmes avec `npx agy-powerline theme --gallery`.
 **Pills** (par défaut) : capsules de style powerline. Choisissez des formes arrondies, anguleuses, inclinées ou plates, et ajoutez éventuellement une ligne vide entre les lignes de la barre.
 
 <p align="center">
-  <img src="assets/screenshots/pills-light.png" alt="Disposition Pills d’agy-powerline avec le thème light-sky sur un terminal clair et un espace entre les lignes" width="850">
+  <img src="assets/screenshots/pills-dark.png" alt="Disposition Pills d’agy-powerline avec le thème dark-aurora : modèle, contexte, projet et Git ; quotas Gemini sur 5h et 7d avec marqueurs de rythme et réinitialisations ; quotas hebdomadaires Claude/GPT et Argon" width="850">
 </p>
+
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/pills-light.png" alt="Disposition Pills d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
 
 **Lines** : les mêmes informations sous forme de texte coloré classique.
 
 <p align="center">
-  <img src="assets/screenshots/lines-dark.png" alt="Disposition Lines d’agy-powerline avec le thème dark-ocean sur un terminal sombre" width="850">
-  <img src="assets/screenshots/lines-light.png" alt="Disposition Lines d’agy-powerline avec le thème light-sky sur un terminal clair" width="850">
+  <img src="assets/screenshots/lines-dark.png" alt="Disposition Lines d’agy-powerline avec le thème dark-aurora sur un terminal sombre" width="850">
 </p>
+
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/lines-light.png" alt="Disposition Lines d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
+
+**Classic** : du texte coloré séparé par des `|`, avec des jauges en blocs, comme `███░│░░░░░`.
+
+<p align="center">
+  <img src="assets/screenshots/classic-dark.png" alt="Disposition Classic d’agy-powerline avec le thème dark-aurora sur un terminal sombre, avec des jauges en blocs" width="850">
+</p>
+
+<details>
+<summary>Sur un terminal clair</summary>
+
+<p align="center">
+  <img src="assets/screenshots/classic-light.png" alt="Disposition Classic d’agy-powerline avec le thème light-paper sur un terminal clair" width="850">
+</p>
+
+</details>
 
 ## Widgets
 
-| Widget                                                  | Informations affichées                                                                                               |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `model`                                                 | Modèle utilisé                                                                                                       |
-| `fiveHourBar`, `weeklyBar`                              | Quota restant sur 5h/7d sous forme de jauge, avec un [indicateur de rythme](docs/configuration.md#quota-pace-marker) |
-| `fiveHourPct`, `weeklyPct`                              | Pourcentage de quota restant sur 5h/7d                                                                               |
-| `fiveHourReset`, `weeklyReset`                          | Temps restant avant la réinitialisation du quota, ou heure de réinitialisation                                       |
-| `quota`                                                 | Quota le plus proche de sa limite, avec son heure de réinitialisation                                                |
-| `thirdPartyFiveHour`, `thirdPartyWeekly`                | Quotas des modèles tiers                                                                                             |
-| `argonWeekly`, `argonReset`                             | Quota hebdomadaire propre à Gemini 4 Argon (Google AI Pro) et sa réinitialisation                                    |
-| `context`, `contextPct`, `contextTokens`                | Fenêtre de contexte utilisée : jauge, pourcentage ou nombre de tokens                                                |
-| `git`                                                   | Branche, modifications non validées et commits en avance ou en retard                                                |
-| `project`, `cwd`                                        | Dossier du projet et dossier courant                                                                                 |
-| `agentState`, `plan`, `sandbox`, `artifacts`, `version` | Activité de l’agent, abonnement Antigravity, bac à sable, artefacts et version de la CLI                             |
-| `tasks`                                                 | Sous-agents actifs et tâches en arrière-plan                                                                         |
-| `mode`                                                  | Mode d’approbation (par exemple `accept-edits`) et mode Vim                                                          |
-| `title`                                                 | Titre de la conversation                                                                                             |
-| `totalTokens`, `cacheHit`, `cacheRead`, `cacheCreate`   | Tokens de la session et utilisation du cache des prompts                                                             |
-| `ram`                                                   | Mémoire utilisée sur votre machine                                                                                   |
-| `customText`, `exec`                                    | Texte personnalisé ou résultat d’une [commande shell](docs/configuration.md#shell-command-widget-exec)               |
+| Widget                                                        | Informations affichées                                                                                               |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `model`                                                       | Modèle utilisé                                                                                                       |
+| `clock`                                                       | Current local time (12/24-hour format set under `clock`)                                                             |
+| `fiveHourBar`, `weeklyBar`                                    | Quota restant sur 5h/7d sous forme de jauge, avec un [indicateur de rythme](docs/configuration.md#quota-pace-marker) |
+| `fiveHourPct`, `weeklyPct`                                    | Pourcentage de quota restant sur 5h/7d                                                                               |
+| `fiveHourReset`, `weeklyReset`                                | Temps restant avant la réinitialisation du quota, ou heure de réinitialisation                                       |
+| `quota`                                                       | Quota le plus proche de sa limite, avec son heure de réinitialisation                                                |
+| `thirdPartyFiveHour`, `thirdPartyWeekly`                      | Quotas des modèles tiers                                                                                             |
+| `argonWeekly`, `argonReset`                                   | Quota hebdomadaire propre à Gemini 4 Argon (Google AI Pro) et sa réinitialisation                                    |
+| `context`, `contextPct`, `contextTokens`                      | Fenêtre de contexte utilisée : jauge, pourcentage ou nombre de tokens                                                |
+| `git`                                                         | Branche, modifications non validées et commits en avance ou en retard                                                |
+| `gitChanges`, `gitFiles`, `gitSha`, `gitStash`, `gitWorktree` | Lines added and removed, staged/modified/untracked/conflicted files, commit ID, stashes, linked worktree             |
+| `project`, `cwd`                                              | Dossier du projet et dossier courant                                                                                 |
+| `agentState`, `plan`, `sandbox`, `artifacts`, `version`       | Activité de l’agent, abonnement Antigravity, bac à sable, artefacts et version de la CLI                             |
+| `tasks`                                                       | Sous-agents actifs et tâches en arrière-plan                                                                         |
+| `mode`                                                        | Mode d’approbation (par exemple `accept-edits`) et mode Vim                                                          |
+| `title`                                                       | Titre de la conversation                                                                                             |
+| `totalTokens`, `cacheHit`, `cacheRead`, `cacheCreate`         | Tokens de la session et utilisation du cache des prompts                                                             |
+| `tokensToday`, `tokensWeek`                                   | Tokens utilisés aujourd’hui et sur les 7 derniers jours, toutes conversations confondues (Node 22.13+)               |
+| `ram`                                                         | Mémoire utilisée sur votre machine                                                                                   |
+| `os`                                                          | System agy runs on: Windows, macOS, Linux or WSL                                                                     |
+| `customText`, `exec`                                          | Texte personnalisé ou résultat d’une [commande shell](docs/configuration.md#shell-command-widget-exec)               |
 
 Un widget qui n’a rien à afficher se masque automatiquement. Vous pouvez personnaliser sa couleur, masquer son libellé ou définir ses propres seuils d’alerte : consultez la [documentation de configuration](docs/configuration.md).
 
 ## Commandes
 
-| Commande                                  | Fonction                                                               |
-| ----------------------------------------- | ---------------------------------------------------------------------- |
-| `npx agy-powerline init [--yes]`          | Installer ou mettre à jour la barre d’état                             |
-| `npx agy-powerline configure`             | Ouvrir l’éditeur (alias `config`)                                      |
-| `npx agy-powerline preset <name>`         | Appliquer un préréglage (`--list` pour afficher la liste)              |
-| `npx agy-powerline theme <name>`          | Changer de thème (`--list`, `--gallery`)                               |
-| `npx agy-powerline layout <pills\|lines>` | Changer de disposition                                                 |
-| `npx agy-powerline caps <style>`          | Changer la forme des capsules : `round`, `angled`, `slanted`, `flat`   |
-| `npx agy-powerline doctor`                | Vérifier l’installation et expliquer les éventuels problèmes           |
-| `npx agy-powerline report`                | Générer un rapport de bogue respectueux de la vie privée               |
-| `npx agy-powerline uninstall [--delete]`  | Retirer la barre d’état d’agy (`--delete` supprime aussi ses fichiers) |
-| `npx agy-powerline render --demo`         | Afficher la barre avec des données d’exemple                           |
+| Commande                                           | Fonction                                                               |
+| -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npx agy-powerline init [--yes]`                   | Installer ou mettre à jour la barre d’état                             |
+| `npx agy-powerline configure`                      | Ouvrir l’éditeur (alias `config`)                                      |
+| `npx agy-powerline preset <name>`                  | Appliquer un préréglage (`--list` pour afficher la liste)              |
+| `npx agy-powerline theme <name>`                   | Changer de thème (`--list`, `--gallery`)                               |
+| `npx agy-powerline gradient <name>`                | Color each row with a gradient (`--list`, `off`)                       |
+| `npx agy-powerline layout <pills\|lines\|classic>` | Changer de disposition                                                 |
+| `npx agy-powerline caps <style>`                   | Changer la forme des capsules : `round`, `angled`, `slanted`, `flat`   |
+| `npx agy-powerline export [file]`                  | Save your config to a file, to back it up or share it                  |
+| `npx agy-powerline import <file>`                  | Load a config, after showing what changes (`--merge`)                  |
+| `npx agy-powerline doctor`                         | Vérifier l’installation et expliquer les éventuels problèmes           |
+| `npx agy-powerline report`                         | Générer un rapport de bogue respectueux de la vie privée               |
+| `npx agy-powerline uninstall [--delete]`           | Retirer la barre d’état d’agy (`--delete` supprime aussi ses fichiers) |
+| `npx agy-powerline render --demo`                  | Afficher la barre avec des données d’exemple                           |
 
 Utilisez l’option `--help` avec n’importe quelle commande pour afficher les options disponibles.
 
@@ -165,6 +218,10 @@ Merci à toutes les personnes ayant contribué au projet :
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/yatharth2soni"><img src="https://avatars.githubusercontent.com/u/238868599?v=4&s=160" width="80" height="80" alt="Yatharth Soni"/><br /><sub><b>Yatharth Soni</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dannyward630"><img src="https://avatars.githubusercontent.com/u/71604164?v=4&s=160" width="80" height="80" alt="Danny Ward"/><br /><sub><b>Danny Ward</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yoreva-01"><img src="https://avatars.githubusercontent.com/u/195282707?v=4&s=160" width="80" height="80" alt="Yusuf Orçan"/><br /><sub><b>Yusuf Orçan</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/yuefdev"><img src="https://avatars.githubusercontent.com/u/120668197?v=4&s=160" width="80" height="80" alt="Yusuf Efe"/><br /><sub><b>Yusuf Efe</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hiyouwhatsapp"><img src="https://avatars.githubusercontent.com/u/89997383?v=4&s=160" width="80" height="80" alt="hiyouwhatsapp"/><br /><sub><b>hiyouwhatsapp</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dharamdan01"><img src="https://avatars.githubusercontent.com/u/188893946?v=4&s=160" width="80" height="80" alt="dharamdan01"/><br /><sub><b>dharamdan01</b></sub></a></td>
     </tr>
   </tbody>
 </table>
@@ -175,6 +232,10 @@ Merci à toutes les personnes ayant contribué au projet :
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 Si agy-powerline vous est utile, une ⭐ permet à d’autres utilisateurs d’agy de le découvrir.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wassim-azi/agy-powerline&type=Date)](https://star-history.com/#wassim-azi/agy-powerline&Date)
 
 ## Licence
 

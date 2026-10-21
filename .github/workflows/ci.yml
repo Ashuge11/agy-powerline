@@ -41,6 +41,20 @@ jobs:
       - name: Prettier
         run: npm run format:check
 
+  # Spelling in the English docs, comments and strings; _typos.toml says what
+  # it skips and why.
+  typos:
+    name: Spelling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: typos
+        uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
+
   test:
     name: Test (${{ matrix.os }}, Node ${{ matrix.node-version }})
     runs-on: ${{ matrix.os }}
@@ -77,6 +91,30 @@ jobs:
       - name: Run OS-specific native tests
         run: npm run test:platform
 
+      # Antigravity starts the bar as `cmd /c <statusLine.command>`. This starts
+      # the command init wrote the same way, from the runner's shell rather
+      # than through Node, in a home path with a space in it. It runs in pwsh:
+      # zizmor flags `shell: cmd`, which ignores failures, and actionlint needs
+      # the shell named, since a matrix runner could be bash.
+      - name: Smoke-test the cmd launcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:HOME = $env:USERPROFILE = Join-Path $env:RUNNER_TEMP "agy home"
+          Remove-Item Env:AGY_POWERLINE_HOME -ErrorAction Ignore
+          node src/index.js init --yes
+          if ($LASTEXITCODE) { exit 1 }
+          $settings = Join-Path $env:USERPROFILE ".gemini/antigravity-cli/settings.json"
+          $bar = (Get-Content $settings -Raw | ConvertFrom-Json).statusLine.command
+          "statusLine.command: $bar"
+          $errFile = Join-Path $env:RUNNER_TEMP "bar.err"
+          $out = '{"model":{"display_name":"Gemini"}}' | cmd.exe /d /c $bar 2> $errFile
+          $code = $LASTEXITCODE
+          $err = Get-Content $errFile -Raw
+          $out
+          if ($code -or $err) { "cmd exited $code. stderr: $err"; exit 1 }
+          if ("$out" -notmatch "Gemini") { "The bar did not render"; exit 1 }
+
       - name: Verify diagnostics doctor command
         run: node src/index.js doctor --markdown
 
@@ -93,13 +131,39 @@ jobs:
           npm pack --dry-run --json > pack.json
           node -e "
             const files = require('./pack.json')[0].files.map((f) => f.path);
-            const bad = files.filter((f) => !/^(src\/|README(\.[a-z]{2}(-[A-Z]{2})?)?\.md$|CHANGELOG\.md$|LICENSE$|package\.json$)/.test(f));
+            const bad = files.filter((f) => !/^(src\/|README(\.[a-z]{2}(-[A-Z]{2})?)?\.md$|CHANGELOG\.md$|LICENSE$|llms\.txt$|package\.json$)/.test(f));
             if (bad.length) throw new Error('Unexpected files in package: ' + bad.join(', '));
             const scripts = require('./package.json').scripts || {};
             const hooks = ['preinstall', 'install', 'postinstall', 'prepare'].filter((s) => s in scripts);
             if (hooks.length) throw new Error('Install scripts in package: ' + hooks.join(', '));
             console.log(files.length + ' files OK, no install scripts');
           "
+
+      # release.yml attaches these to every release. Built here too, so a
+      # broken archive shows up on the pull request rather than at release.
+      - name: Verify plugin archives
+        if: runner.os == 'Linux' && matrix.node-version == '24.x'
+        run: |
+          node scripts/release/plugin-archives.js dist > plugin-files.txt
+          TAR="dist/$(sed -n 1p plugin-files.txt)"
+          ZIP="dist/$(sed -n 2p plugin-files.txt)"
+          tar -tzf "$TAR" | sort > tar.txt
+          unzip -Z1 "$ZIP" | sort > zip.txt
+          for entry in agy-powerline/plugin.json agy-powerline/package.json \
+            agy-powerline/src/index.js agy-powerline/skills/agy-powerline-setup/SKILL.md \
+            agy-powerline/skills/agy-powerline-customize/SKILL.md; do
+            grep -qx "$entry" tar.txt || { echo "::error::$entry missing from $TAR"; exit 1; }
+            grep -qx "$entry" zip.txt || { echo "::error::$entry missing from $ZIP"; exit 1; }
+          done
+          if grep -v '^agy-powerline/' tar.txt zip.txt; then
+            echo "::error::Archive entries outside agy-powerline/"
+            exit 1
+          fi
+          if tar -xzOf "$TAR" agy-powerline/package.json | grep -q '"prepare"'; then
+            echo "::error::The archived package.json still has the prepare script"
+            exit 1
+          fi
+          echo "$(grep -vc '/$' tar.txt) files in $TAR and $ZIP"
 
   gallery:
     name: Theme preview
@@ -118,11 +182,17 @@ jobs:
       - name: Build gallery.html
         run: npm run gallery
 
+      - name: Build theme screenshots
+        run: npm run screenshots
+
       # Reviewers download "theme-preview" from the run's Summary page and
-      # open gallery.html to see widget and theme changes without installing.
+      # open gallery.html, or one SVG per theme in screenshots/, to see widget
+      # and theme changes without installing.
       - name: Upload preview
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: theme-preview
-          path: gallery.html
+          path: |
+            gallery.html
+            screenshots/
           retention-days: 14

@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+"use strict";
+
 const path = require("path");
 const { readConfigFile, renderStatusline } = require("./shared");
 const { isTrustedInstallDir } = require("./paths");
@@ -124,7 +126,7 @@ function render(input, complete) {
   }
 
   const started = Date.now();
-  const output = renderStatusline(data, config, { exec, configError });
+  const output = renderStatusline(data, config, { exec, configError, usage: "read" });
   const elapsed = Date.now() - started;
 
   if (elapsed > SLOW_RENDER_MS) {

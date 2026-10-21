@@ -1,6 +1,18 @@
 "use strict";
 
-const { rgb, fg, RESET, DIM, BOLD, NORMAL, BLINK } = require("../colors");
+const {
+  rgb,
+  fg,
+  mix,
+  RESET,
+  DIM,
+  BOLD,
+  NORMAL,
+  BLINK,
+  gradientColors,
+  withContrast,
+} = require("../colors");
+const { gradientStops, terminalBackground } = require("../themes");
 const {
   basenameOf,
   homePath,
@@ -9,6 +21,9 @@ const {
   paceIndex,
   paceGlyph,
   formatGitSync,
+  formatGitOperation,
+  gitChangeParts,
+  gitFileParts,
   formatTasks,
   formatMode,
   clipText,
@@ -16,19 +31,24 @@ const {
   formatContextTokens,
   shortModelName,
   formatTokenSplit,
+  formatUsage,
   resolveQuotaThresholds,
   resolveContextThresholds,
   shouldBlink,
 } = require("../formatters");
 const { joinFlex } = require("./pills");
-const { execWidgetOutput } = require("../exec");
+const { execWidgetOutput, restoreAfterReset } = require("../exec");
 const {
   NAMED_COLORS,
   resolveColor,
   widgetColors,
   widgetTag,
+  OS_ICONS,
   isRaw,
   isPaced,
+  METER_STYLES,
+  meterStyle,
+  hiddenByThreshold,
   hasNoData,
   RAM_CAUTION,
   RAM_DANGER,
@@ -127,41 +147,69 @@ function renderDotMeter(
       : colorForUsedPct(pct, palette, options));
 
   const marker = paceIndex(options.elapsedPct, width);
+  const [full, blank, pace] = METER_STYLES[options.style] || METER_STYLES.dots;
+  // A Classic meter is one color: the empty glyph's own texture (░) sets it
+  // apart, and the pace marker is a thin line.
+  const classic = options.classic === true;
+  const track = palette.track || rgb(60, 65, 75);
+  // ramp shades each filled cell by its place, from the theme's ok color to
+  // caution to danger, over the track; rings keeps the fill's color, faded.
+  const ramp = options.style === "ramp";
+  const trackColor = ramp
+    ? track
+    : options.style === "rings"
+      ? mix(color, track, 0.5)
+      : classic
+        ? color
+        : track;
+  const fillColor = (i) => (ramp ? rampColor(width > 1 ? i / (width - 1) : 0, palette) : color);
+  const markerColor = palette.text || LINES.white;
 
-  if (marker < 0) {
+  if (marker < 0 && !ramp) {
     if (ascii) {
       return fg(color) + "#".repeat(filled) + DIM + "-".repeat(empty) + RESET;
     }
-    const trackColor = palette.track || rgb(60, 65, 75);
-    return fg(color) + "●".repeat(filled) + fg(trackColor) + "●".repeat(empty) + RESET;
+    return fg(color) + full.repeat(filled) + fg(trackColor) + blank.repeat(empty) + RESET;
   }
 
   // The marker replaces the dot where the quota window currently is.
-  const trackColor = palette.track || rgb(60, 65, 75);
-  const markerColor = palette.text || LINES.white;
+  const markGlyph = ascii ? paceGlyph(true) : classic ? "│" : pace || paceGlyph(false);
   // ASCII empties are dim; NORMAL ends that without dropping a blink.
   const undim = ascii ? NORMAL : "";
   let out = "";
   for (let i = 0; i < width; i++) {
     if (i === marker) {
-      out += undim + fg(markerColor) + paceGlyph(ascii);
+      out += undim + fg(markerColor) + markGlyph;
     } else if (i < filled) {
-      out += undim + fg(color) + (ascii ? "#" : "●");
+      out += undim + fg(fillColor(i)) + (ascii ? "#" : full);
     } else {
-      out += ascii ? DIM + "-" : fg(trackColor) + "●";
+      out += ascii ? DIM + "-" : fg(trackColor) + blank;
     }
   }
   return out + RESET;
+}
+
+// A point along the meter, 0 to 1, as a color between ok, caution and danger.
+function rampColor(at, palette) {
+  const ok = palette.quotaLow || LINES.green;
+  const caution = palette.quotaHigh || LINES.yellow;
+  const danger = palette.quotaCrit || LINES.red;
+  return at <= 0.5 ? mix(ok, caution, at * 2) : mix(caution, danger, (at - 0.5) * 2);
 }
 
 function buildLinesSegment(id, session, palette, emojis, ascii = false, widget = {}, config = {}) {
   // Raw widgets keep only their value: no icon, no label.
   const raw = isRaw(widget, config);
   const tag = (icon) => widgetTag(id, { emojis, raw, icon });
-  // Meters: 25 dots, or 12 when the bar is fitted to a narrow terminal.
+  // Meters: 25 cells, or 12 when the bar is fitted to a narrow terminal;
+  // Classic draws the same cells as blocks.
+  const classic = config.layout === "classic";
   const dots = widget?.compact ? 12 : 25;
+  const style = meterStyle(widget, config, classic ? "classic" : "lines");
   const pace = (quota, thresh) => ({
     ...thresh,
+    style,
+    classic,
     elapsedPct: isPaced(widget, config) ? quota.elapsedPct : null,
   });
   const over200k = session.exceeds200k ? " >200k" : "";
@@ -221,13 +269,14 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
     return { thresh, blinkSeq, color };
   }
 
-  if (hasNoData(id, session)) {
+  if (hasNoData(id, session) || hiddenByThreshold(id, widget, session)) {
     return null;
   }
 
   switch (id) {
     case "clock":
       return fg(palette.text) + tag() + formatClockTime(new Date(), config.clock) + RESET;
+
     case "model":
       if (!session.model) {
         return null;
@@ -307,7 +356,12 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
         blinkSeq +
         fg(palette.text) +
         tag() +
-        renderDotMeter(session.contextPct, dots, ascii, palette, false, { ...thresh, color }) +
+        renderDotMeter(session.contextPct, dots, ascii, palette, false, {
+          ...thresh,
+          color,
+          style,
+          classic,
+        }) +
         " " +
         fg(color) +
         `${formatContextTokens(session.usedTokens, session.contextSize)} ` +
@@ -356,10 +410,18 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       return fg(palette.location) + tag() + proj + RESET;
     }
 
+    case "os": {
+      if (!session.os) {
+        return null;
+      }
+      return fg(palette.location) + tag(OS_ICONS[session.os]) + session.os + RESET;
+    }
+
     case "git": {
       if (!session.git || !session.git.branch) {
         return null;
       }
+      const opStr = widget.operation === false ? "" : formatGitOperation(session.git.operation);
       const syncStr = formatGitSync(session.git.ahead, session.git.behind, ascii);
       const syncPart = syncStr ? ` ${syncStr}` : "";
       return (
@@ -368,12 +430,59 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
         "(" +
         session.git.branch +
         (session.git.dirty ? `${fg(palette.gitDirty)}*` : "") +
+        (opStr ? `${fg(palette.gitDirty)} ${opStr}` : "") +
         (syncPart ? `${fg(palette.git)}${syncPart}` : "") +
         fg(palette.git) +
         ")" +
         RESET
       );
     }
+
+    case "gitChanges": {
+      const parts = gitChangeParts(session.gitDetails?.changes, ascii);
+      if (!parts.length) {
+        return null;
+      }
+      const shade = { added: palette.quotaLow, removed: palette.quotaCrit };
+      return (
+        fg(palette.git) +
+        tag() +
+        parts.map((part) => fg(shade[part.kind]) + part.text).join(" ") +
+        RESET
+      );
+    }
+
+    case "gitFiles": {
+      const parts = gitFileParts(session.gitDetails?.files, ascii);
+      if (!parts.length) {
+        return null;
+      }
+      const shade = (kind) => (kind === "conflicts" ? palette.quotaCrit : palette.git);
+      return (
+        fg(palette.git) +
+        tag() +
+        parts.map((part) => fg(shade(part.kind)) + part.text).join(" ") +
+        RESET
+      );
+    }
+
+    case "gitSha":
+      if (!session.gitDetails?.sha) {
+        return null;
+      }
+      return fg(palette.git) + tag() + session.gitDetails.sha + RESET;
+
+    case "gitStash":
+      if (!(session.gitDetails?.stash > 0)) {
+        return null;
+      }
+      return fg(palette.git) + tag() + session.gitDetails.stash + RESET;
+
+    case "gitWorktree":
+      if (!session.gitDetails?.worktree) {
+        return null;
+      }
+      return fg(palette.git) + tag() + session.gitDetails.worktree + RESET;
 
     case "plan":
       if (!session.plan) {
@@ -477,6 +586,32 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
         RESET
       );
 
+    case "tokensToday":
+    case "tokensWeek": {
+      const usage = formatUsage(
+        session.usage?.[id === "tokensToday" ? "today" : "week"],
+        widget,
+        ascii
+      );
+      if (!usage) {
+        return null;
+      }
+      // A budget alerts like the context widgets: caution, then danger.
+      const thresh = resolveContextThresholds(widget, config);
+      const level =
+        usage.pct === null
+          ? "normal"
+          : usage.pct >= thresh.crit
+            ? "crit"
+            : usage.pct >= thresh.warn
+              ? "warn"
+              : "normal";
+      const color =
+        level === "crit" ? palette.quotaCrit : level === "warn" ? palette.quotaHigh : palette.text;
+      const blinkSeq = !ascii && shouldBlink(level, thresh.blink) ? BLINK : "";
+      return blinkSeq + fg(palette.text) + tag() + fg(color) + usage.text + RESET;
+    }
+
     case "customText": {
       if (!widget?.text) {
         return null;
@@ -494,7 +629,7 @@ function buildLinesSegment(id, session, palette, emojis, ascii = false, widget =
       // buildLinesRows already swapped the widget's color into the palette.
       const col = palette.location;
       const iconPart = emojis && icon && !raw ? `${icon} ` : "";
-      return fg(col) + iconPart + named + output + RESET;
+      return fg(col) + iconPart + named + restoreAfterReset(output, fg(col)) + RESET;
     }
 
     default:
@@ -533,10 +668,22 @@ function buildLinesRows(session, config, palette, emojis, ascii = false, colors 
   rowDefs.push(currentRowDef);
 
   const rows = [];
+  const gradient = colors ? gradientStops(config?.gradient) : null;
+  const background = terminalBackground(colors);
+
+  function renderItem(widget, widgetPal) {
+    const item = buildLinesSegment(widget.id, session, widgetPal, emojis, ascii, widget, config);
+    // Bold has to survive the resets inside the segment.
+    return item && widget.bold === true
+      ? BOLD + item.split(RESET).join(RESET + BOLD) + RESET
+      : item;
+  }
 
   for (const def of rowDefs) {
     const groups = [];
     let currentGroup = [];
+    // The widgets shown in this row, so a gradient spreads over exactly those.
+    const placed = [];
 
     function flushGroup() {
       if (currentGroup.length) {
@@ -555,25 +702,34 @@ function buildLinesRows(session, config, palette, emojis, ascii = false, colors 
         continue;
       }
 
-      const item = buildLinesSegment(
-        widget.id,
-        session,
-        widgetPalette(widget, palette, colors),
-        emojis,
-        ascii,
-        widget,
-        config
-      );
+      const item = renderItem(widget, widgetPalette(widget, palette, colors));
 
       if (item) {
-        // Bold has to survive the resets inside the segment.
-        currentGroup.push(
-          widget.bold === true ? BOLD + item.split(RESET).join(RESET + BOLD) + RESET : item
-        );
+        placed.push({ widget, group: currentGroup, index: currentGroup.length });
+        currentGroup.push(item);
       }
     }
 
     flushGroup();
+
+    // Each widget's text takes its step of the gradient, made readable on the
+    // terminal background; alert colors and a widget's own color stay.
+    if (gradient && placed.length) {
+      const shades = gradientColors(gradient, placed.length);
+      placed.forEach(({ widget, group, index }, i) => {
+        if (resolveColor(widget.color, colors)) {
+          return;
+        }
+        const shade = withContrast(shades[i], background);
+        const item = renderItem(
+          widget,
+          widgetPalette({ ...widget, color: shade }, palette, colors)
+        );
+        if (item) {
+          group[index] = item;
+        }
+      });
+    }
 
     if (groups.length) {
       rows.push(groups);
@@ -591,7 +747,7 @@ function renderLinesLayout(session, emojis, ascii = false, colors, config) {
     return RESET;
   }
 
-  const pipe = ` ${DIM}${ascii ? "|" : "│"}${RESET} `;
+  const pipe = ` ${DIM}${ascii || config.layout === "classic" ? "|" : "│"}${RESET} `;
 
   return (
     rows
@@ -599,7 +755,8 @@ function renderLinesLayout(session, emojis, ascii = false, colors, config) {
         const parts = groups.map((group) => group.join(pipe));
         return joinFlex(parts, session.terminalWidth);
       })
-      .join("\n") + RESET
+      // rowGap: a line holding a space, as in Pills, so a host keeps it.
+      .join(config.rowGap === true ? "\n \n" : "\n") + RESET
   );
 }
 

@@ -54,6 +54,7 @@ const {
 } = require("./formatters");
 
 const { extractSession } = require("./session");
+const { execPayloadJson } = require("./exec");
 const { fitWidgets, truncateLines, widestLine } = require("./fit");
 
 const {
@@ -92,12 +93,21 @@ function renderBar(data, config, overrides) {
   // sequences from every string before any layout prints it.
   // Valid JSON can still be null, a number or an array; read those as empty.
   const payload = data && typeof data === "object" && !Array.isArray(data) ? data : {};
-  const session = sanitizeDeep(extractSession(payload, resolved));
+  const session = sanitizeDeep(
+    extractSession(payload, resolved, { readUsage: overrides.usage === "read" })
+  );
   // Exec widgets only run when the caller opts in ("run"); CLI previews keep
   // the default placeholder so rendering a config never executes it.
   session.execMode =
     overrides.exec === "run" || overrides.exec === "blocked" ? overrides.exec : "preview";
   session.execMemo = new Map();
+  // Built only when a command will run and asked for it.
+  if (
+    session.execMode === "run" &&
+    resolved.widgets.some((widget) => widget.id === "exec" && widget.payload === true)
+  ) {
+    session.execPayload = execPayloadJson(payload);
+  }
 
   const prevDepth = getActiveDepth();
 
@@ -129,7 +139,8 @@ function renderBar(data, config, overrides) {
 }
 
 function renderLayout(session, config, emojis, ascii, colors) {
-  if (config.layout === "lines") {
+  // Classic is Lines with block meters and | dividers.
+  if (config.layout === "lines" || config.layout === "classic") {
     return renderLinesLayout(session, emojis, ascii, colors, config);
   }
 

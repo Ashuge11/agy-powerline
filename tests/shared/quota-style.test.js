@@ -55,7 +55,11 @@ function testPacing() {
     "the weekly bar marks its own window (76% -> cell 10 of 12)",
     plain({ ascii: true, widgets: [{ id: "weeklyBar" }] }).includes("[         |  ]")
   );
-  record("Nerd Font mode draws the marker as a heavy bar", plain({ widgets: bar }).includes("┃"));
+  record(
+    "the default dotted meter draws the marker as a larger dot, cells as a heavy bar",
+    plain({ widgets: bar }).includes("•••••●••••••") &&
+      plain({ meterStyle: "cells", widgets: bar }).includes("┃")
+  );
   record(
     "pacing: false hides every marker",
     !plain({ ascii: true, pacing: false, widgets: bar }).includes("|")

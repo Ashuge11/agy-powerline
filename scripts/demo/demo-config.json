@@ -1,0 +1,27 @@
+{
+  "rowGap": true,
+  "widgets": [
+    { "id": "agentState" },
+    { "id": "tasks" },
+    { "id": "model" },
+    { "id": "plan" },
+    { "id": "sandbox" },
+    { "id": "separator" },
+    { "id": "project" },
+    { "id": "git" },
+    { "id": "lineBreak" },
+    { "id": "context" },
+    { "id": "totalTokens", "split": true },
+    { "id": "cacheHit" },
+    { "id": "separator" },
+    { "id": "artifacts" },
+    { "id": "ram" },
+    { "id": "version" },
+    { "id": "lineBreak" },
+    { "id": "fiveHourBar" },
+    { "id": "fiveHourReset" },
+    { "id": "separator" },
+    { "id": "weeklyBar" },
+    { "id": "weeklyReset" }
+  ]
+}

@@ -3,10 +3,11 @@
 const fs = require("fs");
 const path = require("path");
 const { resolveColorModeId } = require("./colors");
-const { resolveThemeId } = require("./themes");
+const { resolveThemeId, normalizeGradient } = require("./themes");
 const { stripControl, normalizeClock } = require("./formatters");
 const { normalizePowerline } = require("./powerline");
 const { writeFileAtomic, PRIVATE_FILE_MODE } = require("./paths");
+const { isMeterStyle } = require("./widget-style");
 
 // Display text in widget configs is printed as-is, so strip terminal control
 // from it. cmd/command are left alone: they are executed, not printed.
@@ -38,7 +39,13 @@ const VALID_WIDGET_IDS = new Set([
   "contextTokens",
   "cwd",
   "project",
+  "os",
   "git",
+  "gitChanges",
+  "gitFiles",
+  "gitSha",
+  "gitStash",
+  "gitWorktree",
   "plan",
   "agentState",
   "artifacts",
@@ -53,6 +60,8 @@ const VALID_WIDGET_IDS = new Set([
   "cacheHit",
   "totalTokens",
   "clock",
+  "tokensToday",
+  "tokensWeek",
   "exec",
   "customText",
   "separator",
@@ -84,9 +93,14 @@ const LAYOUTS = {
     name: "Lines",
     description: "Plain colored text with dividers and dot meters",
   },
+  classic: {
+    id: "classic",
+    name: "Classic",
+    description: "Plain colored text with | dividers and █░│ block meters",
+  },
 };
 
-const LAYOUT_ORDER = ["pills", "lines"];
+const LAYOUT_ORDER = ["pills", "lines", "classic"];
 
 function resolveLayoutId(layoutId) {
   return LAYOUTS[layoutId] ? layoutId : "pills";
@@ -176,6 +190,17 @@ function mergeConfig(raw) {
     result.customTheme = raw.customTheme;
   }
 
+  // An unknown meter style is left out: each layout then draws its own.
+  if (isMeterStyle(raw?.meterStyle)) {
+    result.meterStyle = raw.meterStyle;
+  }
+
+  // Only a valid gradient is kept; anything else renders the plain theme.
+  const gradient = normalizeGradient(raw?.gradient);
+  if (gradient) {
+    result.gradient = gradient;
+  }
+
   return result;
 }
 
@@ -237,11 +262,12 @@ function saveConfig(config) {
 }
 
 // Presets set the widget list only; the layout (Pills or Lines) stays the one
-// the user picked. Each keeps all its widgets at 80 columns (full at 100).
+// the user picked. Each answers one question and keeps all its widgets at 80
+// columns (full at 100); widgets with nothing to show hide on their own.
 const PRESETS = {
   default: {
     id: "default",
-    name: "Everyday",
+    name: "Default",
     description: "Model, context and git; 5h and 7d quotas with resets on a second row",
     widgets: [
       { id: "model" },
@@ -259,41 +285,84 @@ const PRESETS = {
   },
   compact: {
     id: "compact",
-    name: "One line",
-    description: "Short model, tightest quota, context % and git on a single row",
+    name: "Compact",
+    description: "One row: short model, tightest quota, context % and git",
     widgets: [{ id: "model", short: true }, { id: "quota" }, { id: "contextPct" }, { id: "git" }],
   },
-  workspace: {
-    id: "workspace",
-    name: "Several repos",
-    description: "Project, git, agent state and model; context, tightest quota and mode below",
+  agent: {
+    id: "agent",
+    name: "Agent activity",
+    description: "Agent state, subagents, title and mode; context, artifacts, quota",
+    widgets: [
+      { id: "agentState" },
+      { id: "tasks" },
+      { id: "title" },
+      { id: "separator" },
+      { id: "mode" },
+      { id: "sandbox" },
+      { id: "lineBreak" },
+      { id: "model", short: true },
+      { id: "contextPct" },
+      { id: "artifacts" },
+      { id: "separator" },
+      { id: "quota" },
+    ],
+  },
+  git: {
+    id: "git",
+    name: "Git focus",
+    description: "Project, branch, worktree, stash; changed files and lines, commit",
     widgets: [
       { id: "project" },
       { id: "git" },
-      { id: "agentState" },
+      { id: "gitWorktree" },
+      { id: "gitStash" },
       { id: "separator" },
       { id: "model", short: true },
       { id: "lineBreak" },
-      { id: "context" },
+      { id: "gitFiles" },
+      { id: "gitChanges" },
+      { id: "gitSha" },
       { id: "separator" },
+      { id: "contextPct" },
       { id: "quota" },
-      { id: "mode" },
     ],
   },
-  limits: {
-    id: "limits",
-    name: "Heavy usage",
-    description: "5h, 7d, third-party and Argon quotas with resets, one quota per row",
+  tokens: {
+    id: "tokens",
+    name: "Token usage",
+    description: "Session tokens in and out, cache hit; tokens today and over 7 days",
     widgets: [
+      { id: "model", short: true },
+      { id: "contextTokens" },
+      { id: "separator" },
+      { id: "totalTokens", split: true },
+      { id: "cacheHit" },
+      { id: "lineBreak" },
+      { id: "tokensToday" },
+      { id: "tokensWeek" },
+      { id: "separator" },
+      { id: "quota" },
+    ],
+  },
+  quotas: {
+    id: "quotas",
+    name: "Quota watch",
+    description: "Plan and model; 5h and 7d quotas side by side; third-party and Argon",
+    widgets: [
+      { id: "plan" },
+      { id: "separator" },
+      { id: "model", short: true },
+      { id: "lineBreak" },
       { id: "fiveHourBar" },
       { id: "fiveHourReset" },
-      { id: "lineBreak" },
+      { id: "separator" },
       { id: "weeklyBar" },
       { id: "weeklyReset" },
       { id: "lineBreak" },
       { id: "thirdPartyFiveHour" },
       { id: "thirdPartyWeekly" },
-      { id: "lineBreak" },
+      { id: "separator" },
       { id: "argonWeekly" },
       { id: "argonReset" },
     ],
@@ -301,7 +370,7 @@ const PRESETS = {
   full: {
     id: "full",
     name: "Everything",
-    description: "Session, project and git; context, tokens and cache; both quotas, on three rows",
+    description: "Session, project and git; context, tokens and cache; both quotas",
     widgets: [
       { id: "agentState" },
       { id: "tasks" },
@@ -326,7 +395,7 @@ const PRESETS = {
   },
 };
 
-const PRESET_ORDER = ["default", "compact", "workspace", "limits", "full"];
+const PRESET_ORDER = ["default", "compact", "agent", "git", "tokens", "quotas", "full"];
 
 function applyPreset(baseConfig, presetName) {
   const preset = PRESETS[presetName] || PRESETS.default;

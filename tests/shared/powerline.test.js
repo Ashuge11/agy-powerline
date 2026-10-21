@@ -24,7 +24,7 @@ function render(powerline, widgets, overrides = {}) {
   return renderStatusline(
     payload(),
     { ...defaultConfig(), powerline, widgets },
-    { color: "none", env: {}, ...overrides }
+    { color: "truecolor", env: {}, ...overrides }
   );
 }
 
@@ -169,9 +169,16 @@ function testSeparatorColors() {
 
     const twin = { color: [1, 2, 3], text: "c" };
     const same = renderGroup([left, twin], colors, { powerline: powerline(false) });
+    const join = (hex) =>
+      renderGroup([left, twin], colors, { powerline: { ...powerline(false), separators: [hex] } });
+    const textOn = `\x1b[38;2;9;9;9m\x1b[48;2;1;2;3m`;
     record(
-      "between same-colored widgets the separator uses the text color so it stays visible",
-      same.includes(`\x1b[38;2;9;9;9m\x1b[48;2;1;2;3m${glyph}`)
+      "between same-colored widgets the separator is a thin line in the text color",
+      same.includes(`${textOn}${char("E0B1")}`) &&
+        !same.includes(glyph) &&
+        join("E0B4").includes(`${textOn}│`) &&
+        !join("E0B4").includes(char("E0B5")) &&
+        join("2A").includes(`${textOn}*`)
     );
 
     const none = renderGroup([left, right], colors, {
@@ -210,6 +217,98 @@ function testAscii() {
       glyphChar("E0C0", "startCap", true) === "" &&
       glyphChar("E0C0", "endCap", true) === ""
   );
+}
+
+// Visual edges of a pill: what is drawn around and between the widgets.
+function testPillEdges() {
+  const quotas = [
+    { id: "fiveHourBar" },
+    { id: "fiveHourReset" },
+    { id: "separator" },
+    { id: "weeklyBar" },
+  ];
+  const wide = (powerline, overrides = {}) =>
+    renderStatusline(
+      { ...payload(), terminal_width: 140 },
+      { ...defaultConfig(), powerline, widgets: quotas },
+      { color: "truecolor", env: {}, ...overrides }
+    );
+  const round = defaultConfig().powerline;
+
+  // Walk the output and note whether bold is on at each Powerline glyph.
+  const boldGlyphs = (out) => {
+    let bold = false;
+    let count = 0;
+    for (const part of out.split(/(\x1b\[[0-9;]*m)/)) {
+      const code = part.match(/^\x1b\[([0-9;]*)m$/);
+      if (code) {
+        const params = code[1].split(";");
+        if (params.includes("1")) bold = true;
+        if (params.includes("22") || params.includes("0") || code[1] === "") bold = false;
+      } else if (bold) {
+        count += (part.match(POWERLINE_RANGE) || []).length;
+      }
+    }
+    return count;
+  };
+  record(
+    "caps and separators are drawn without bold",
+    boldGlyphs(wide(round)) === 0 && boldGlyphs(wide(applyStyle({}, "angled"))) === 0
+  );
+
+  const flat = wide(applyStyle({}, "flat"));
+  record(
+    "without end caps a pill still ends on the terminal background, so the padding stays clear",
+    /\x1b\[49m {10,}/.test(flat),
+    flat.replace(/\x1b/g, "\\e")
+  );
+
+  const separate = stripAnsi(wide({ ...round, enabled: false }));
+  record(
+    "with joins off the pills of one group sit a space apart and only the Flex Separator spreads",
+    /rem  /.test(separate) && / {10,}/.test(separate),
+    separate
+  );
+
+  const plain = wide(round, { color: "none" });
+  record(
+    "without color there are no solid caps or joins, only thin lines between widgets",
+    !/[-]/.test(plain) && plain.includes("│")
+  );
+
+  const previousDepth = getActiveDepth();
+  setActiveDepth("256");
+  try {
+    const colors = { text: [22, 22, 28], terminal: null };
+    // Two different colors that land on the same 256-color code.
+    const out = renderGroup(
+      [
+        { color: [86, 156, 214], text: "a" },
+        { color: [90, 160, 210], text: "b" },
+      ],
+      colors,
+      { powerline: round }
+    );
+    record(
+      "at 256 colors widgets that land on the same code are divided by a thin line",
+      out.includes("│") && !/[-].*[-].*[-]/.test(out)
+    );
+
+    const ascii = renderGroup(
+      [
+        { color: [86, 156, 214], text: "a" },
+        { color: [197, 134, 192], text: "b" },
+      ],
+      colors,
+      { powerline: round, ascii: true }
+    );
+    record(
+      "ASCII joins are drawn in the text color so they read on any pill",
+      ascii.includes("\x1b[38;5;234m\x1b[48;5;175m>")
+    );
+  } finally {
+    setActiveDepth(previousDepth);
+  }
 }
 
 function testNoInjection() {
@@ -274,6 +373,7 @@ async function run() {
   testCycling();
   testSeparatorColors();
   testAscii();
+  testPillEdges();
   testNoInjection();
   testCapsCommand();
 }

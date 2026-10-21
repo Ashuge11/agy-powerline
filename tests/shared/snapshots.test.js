@@ -93,6 +93,43 @@ function cases() {
     { color: "none", ascii: true },
   ]);
   list.push(["lines · 256 colors", { ...base, layout: "lines" }, { color: "256" }]);
+  list.push(["classic · dark-aurora", { ...base, layout: "classic" }, { color: "truecolor" }]);
+  list.push([
+    "lines · meter ramp",
+    { ...base, layout: "lines", meterStyle: "ramp" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "classic · meter rings",
+    { ...base, layout: "classic", meterStyle: "rings" },
+    { color: "truecolor" },
+  ]);
+  list.push(["classic · ascii", { ...base, layout: "classic" }, { color: "none", ascii: true }]);
+  list.push([
+    "pills default · gradient sunset",
+    { ...base, layout: "pills", gradient: "sunset" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "lines · gradient sunset",
+    { ...base, layout: "lines", gradient: "sunset" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "pills default · meter blocks",
+    { ...base, layout: "pills", meterStyle: "blocks" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "lines · meter geometric",
+    { ...base, layout: "lines", meterStyle: "geometric" },
+    { color: "truecolor" },
+  ]);
+  list.push([
+    "lines · light-paper · gradient sunset",
+    { ...base, theme: "light-paper", layout: "lines", gradient: "sunset" },
+    { color: "truecolor" },
+  ]);
   return list;
 }
 
@@ -147,6 +184,9 @@ function renderSnapshot(name, data) {
 function frozen(fn) {
   const RealDate = Date;
   const previousTz = process.env.TZ;
+  const previousWsl = process.env.WSL_DISTRO_NAME;
+  const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform");
+  const readFileSync = fs.readFileSync;
   const { freemem, totalmem } = os;
 
   class FixedDate extends RealDate {
@@ -165,6 +205,14 @@ function frozen(fn) {
 
   global.Date = FixedDate;
   process.env.TZ = "UTC";
+  Object.defineProperty(process, "platform", { ...platformDescriptor, value: "linux" });
+  delete process.env.WSL_DISTRO_NAME;
+  fs.readFileSync = function (file, ...args) {
+    if (file === "/proc/version") {
+      return "Linux version";
+    }
+    return readFileSync.call(fs, file, ...args);
+  };
   os.freemem = () => 6 * GIB;
   os.totalmem = () => 16 * GIB;
 
@@ -177,6 +225,13 @@ function frozen(fn) {
     } else {
       process.env.TZ = previousTz;
     }
+    Object.defineProperty(process, "platform", platformDescriptor);
+    if (previousWsl === undefined) {
+      delete process.env.WSL_DISTRO_NAME;
+    } else {
+      process.env.WSL_DISTRO_NAME = previousWsl;
+    }
+    fs.readFileSync = readFileSync;
     os.freemem = freemem;
     os.totalmem = totalmem;
   }

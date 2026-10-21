@@ -18,6 +18,7 @@ const NAMED_COLORS = {
 // Slots that signal state rather than identity. A widget's own color never
 // replaces them, so caution/danger alerts still stand out.
 const STATE_SLOTS = new Set(["text", "terminal", "track", "caution", "warn", "gitDirty"]);
+const OS_ICONS = { Windows: "🪟", macOS: "🍎", Linux: "🐧", WSL: "🐧" };
 
 // A theme slot ("git"), a basic name ("cyan"), or hex/rgb ("#ff8800").
 function resolveColor(value, colors) {
@@ -100,7 +101,13 @@ const WIDGET_TAGS = {
   contextTokens: { icon: "💾", name: "Context" },
   cwd: { icon: "📂", name: "Dir" },
   project: { icon: "📦", name: "Project" },
+  os: { icon: "💻", name: "" },
   git: { icon: "🌿", name: "" },
+  gitChanges: { icon: "📝", name: "Lines" },
+  gitFiles: { icon: "📄", name: "Files" },
+  gitSha: { icon: "📌", name: "Commit" },
+  gitStash: { icon: "💼", name: "Stash" },
+  gitWorktree: { icon: "🌳", name: "Worktree" },
   plan: { icon: "⭐", name: "Plan" },
   agentState: { icon: "🟣", name: "Agent" },
   artifacts: { icon: "📎", name: "Artifacts" },
@@ -115,6 +122,8 @@ const WIDGET_TAGS = {
   cacheHit: { icon: "⚡", name: "Cache hit" },
   totalTokens: { icon: "🪙", name: "Tokens" },
   clock: { icon: "🕒", name: "Clock", iconOnly: true },
+  tokensToday: { icon: "📈", name: "Today" },
+  tokensWeek: { icon: "📊", name: "7d" },
   customText: { icon: "🏷️", name: "" },
 };
 
@@ -133,6 +142,40 @@ function widgetTag(id, { emojis = true, raw = false, icon } = {}) {
   return `${icon ?? tag.icon} ${tag.iconOnly ? "" : named}`;
 }
 
+// Meter styles: [filled, empty] glyphs, and a pace marker for a style that
+// has its own. cells has none: Pills draws it with background colors. Every
+// glyph is one column wide for visibleWidth(); a two-column glyph would
+// overflow the meter and throw fitting off.
+const METER_STYLES = {
+  pips: ["•", "•", "●"],
+  cells: null,
+  dots: ["●", "●"],
+  blocks: ["█", "░"],
+  shade: ["▓", "░"],
+  line: ["━", "─"],
+  geometric: ["▰", "▱"],
+  squares: ["■", "□"],
+  braille: ["⣿", "⣀"],
+  bars: ["▮", "▯"],
+  rings: ["●", "○"],
+  ramp: ["█", "░"],
+};
+const METER_STYLE_IDS = Object.keys(METER_STYLES);
+
+function isMeterStyle(value) {
+  return typeof value === "string" && Object.hasOwn(METER_STYLES, value);
+}
+
+// The widget's "meter", else the global "meterStyle", else the layout's own;
+// cells exists only in Pills, so the text layouts draw their own instead.
+const OWN_METER = { pills: "pips", lines: "dots", classic: "blocks" };
+
+function meterStyle(widget, config, layout) {
+  const own = OWN_METER[layout] ?? OWN_METER.pills;
+  const id = [widget?.meter, config?.meterStyle].find(isMeterStyle) ?? own;
+  return id === "cells" && layout !== "pills" ? own : id;
+}
+
 // Longest conversation title shown, in terminal columns.
 const TITLE_MAX = 30;
 
@@ -140,8 +183,62 @@ const TITLE_MAX = 30;
 const RAM_CAUTION = 80;
 const RAM_DANGER = 90;
 
+// Widgets whose visibility follows quota or context use the normalized
+// session fields below. Reset widgets follow their own quota window.
+const QUOTA_WIDGETS = new Set([
+  "quota",
+  "fiveHourBar",
+  "fiveHourPct",
+  "weeklyBar",
+  "weeklyPct",
+  "thirdPartyFiveHour",
+  "thirdPartyWeekly",
+  "argonWeekly",
+]);
 const CONTEXT_WIDGETS = new Set(["context", "contextPct", "contextTokens"]);
+const RESET_WIDGETS = new Set(["fiveHourReset", "weeklyReset", "argonReset"]);
+const SHOW_BELOW_SESSION_KEYS = {
+  quota: "tightestQuota",
+  fiveHourBar: "fiveHour",
+  fiveHourPct: "fiveHour",
+  fiveHourReset: "fiveHour",
+  weeklyBar: "weekly",
+  weeklyPct: "weekly",
+  weeklyReset: "weekly",
+  thirdPartyFiveHour: "thirdPartyFiveHour",
+  thirdPartyWeekly: "thirdPartyWeekly",
+  argonWeekly: "argonWeekly",
+  argonReset: "argonWeekly",
+};
 const USAGE_WIDGETS = new Set(["cacheRead", "cacheCreate", "cacheHit"]);
+
+function isVisibilityThreshold(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+// Invalid hand-edited values behave like unset options, leaving the widget
+// visible as it was before per-widget visibility thresholds existed.
+function hiddenByThreshold(id, widget, session) {
+  const quotaKey = Object.hasOwn(SHOW_BELOW_SESSION_KEYS, id) ? SHOW_BELOW_SESSION_KEYS[id] : null;
+  if (quotaKey && isVisibilityThreshold(widget?.showBelow)) {
+    const remaining = session?.[quotaKey]?.remaining;
+    return (
+      typeof remaining === "number" && Number.isFinite(remaining) && remaining > widget.showBelow
+    );
+  }
+
+  if (CONTEXT_WIDGETS.has(id) && isVisibilityThreshold(widget?.showAbove)) {
+    const used = session?.contextPct;
+    return (
+      session?.hasContext === true &&
+      typeof used === "number" &&
+      Number.isFinite(used) &&
+      used < widget.showAbove
+    );
+  }
+
+  return false;
+}
 
 // Widgets with no data to show hide instead of drawing zeros: no context
 // window in the payload is not "0/0", no usage is not "0% cache hit".
@@ -156,10 +253,20 @@ module.exports = {
   STATE_SLOTS,
   resolveColor,
   widgetColors,
+  OS_ICONS,
   WIDGET_TAGS,
   widgetTag,
   isRaw,
   isPaced,
+  METER_STYLES,
+  METER_STYLE_IDS,
+  isMeterStyle,
+  meterStyle,
+  QUOTA_WIDGETS,
+  CONTEXT_WIDGETS,
+  RESET_WIDGETS,
+  isVisibilityThreshold,
+  hiddenByThreshold,
   hasNoData,
   RAM_CAUTION,
   RAM_DANGER,

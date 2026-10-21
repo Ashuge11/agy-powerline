@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const { record, stripAnsi, PAYLOAD } = require("../helpers");
 const {
   renderStatusline,
@@ -8,6 +9,7 @@ const {
   resolveColorDepth,
   rgbToAnsi256,
 } = require("../../src/lib/shared");
+const { METER_STYLE_IDS } = require("../../src/lib/widget-style");
 
 async function run() {
   const base = {
@@ -16,7 +18,7 @@ async function run() {
   };
   const emptyEnv = {};
 
-  for (const layout of ["pills", "lines"]) {
+  for (const layout of LAYOUT_ORDER) {
     const out = stripAnsi(
       renderStatusline(base, { ...defaultConfig(), layout, ascii: true }, { env: emptyEnv })
     );
@@ -25,6 +27,22 @@ async function run() {
       `ascii ${layout} layout is pure ASCII`,
       nonAscii.length === 0,
       nonAscii.length ? [...new Set(nonAscii)].join(" ") : "no caps/joins/dots outside ASCII"
+    );
+
+    const styled = METER_STYLE_IDS.filter((meterStyle) => {
+      const text = stripAnsi(
+        renderStatusline(
+          base,
+          { ...defaultConfig(), layout, ascii: true, meterStyle },
+          { env: emptyEnv }
+        )
+      );
+      return [...text].some((c) => c.codePointAt(0) > 127);
+    });
+    record(
+      `ascii ${layout} layout stays pure ASCII with every meter style`,
+      !styled.length,
+      styled
     );
   }
 
@@ -67,6 +85,14 @@ async function run() {
     resolveColorDepth({ configColor: "auto", cliColor: "256", env: { NO_COLOR: "1" } }) === "256"
   );
   record("pure red maps to xterm 196", rgbToAnsi256([255, 0, 0]) === 196);
+  record(
+    "256 colors pick the nearest cube level or gray: near-black text stays gray, not navy",
+    rgbToAnsi256([22, 22, 28]) === 234 &&
+      rgbToAnsi256([86, 156, 214]) === 74 &&
+      rgbToAnsi256([128, 128, 128]) === 244 &&
+      rgbToAnsi256([0, 0, 0]) === 16 &&
+      rgbToAnsi256([255, 255, 255]) === 231
+  );
   record(
     "mergeConfig keeps ascii and color",
     (() => {

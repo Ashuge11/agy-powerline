@@ -123,12 +123,55 @@ const WIDGET_CATALOG = [
     summary: "project folder name",
   },
   {
+    id: "os",
+    label: "Operating System",
+    unique: true,
+    description: "system agy runs on, including WSL",
+    summary: "system running agy",
+  },
+  {
     id: "git",
     label: "VCS Branch",
     unique: true,
     description:
       "current branch, marked when there are uncommitted changes, with how many commits it is ahead of or behind its upstream",
     summary: "branch, changes and ahead/behind",
+  },
+  {
+    id: "gitChanges",
+    label: "Git Line Changes",
+    unique: true,
+    description:
+      "lines added and removed since the last commit, staged or not (new files that aren't staged don't count)",
+    summary: "lines added and removed",
+  },
+  {
+    id: "gitFiles",
+    label: "Git File Counts",
+    unique: true,
+    description: "how many files are staged, modified, untracked and in conflict",
+    summary: "staged, modified, untracked file counts",
+  },
+  {
+    id: "gitSha",
+    label: "Git Commit",
+    unique: true,
+    description: "short ID of the commit checked out",
+    summary: "short commit ID",
+  },
+  {
+    id: "gitStash",
+    label: "Git Stash Count",
+    unique: true,
+    description: "how many stashes the repository holds; hidden when there are none",
+    summary: "number of stashes",
+  },
+  {
+    id: "gitWorktree",
+    label: "Git Worktree",
+    unique: true,
+    description: "name of the linked worktree you're in; hidden in the main one",
+    summary: "linked worktree name",
   },
   {
     id: "plan",
@@ -225,8 +268,23 @@ const WIDGET_CATALOG = [
     id: "clock",
     label: "Clock",
     unique: true,
-    description: "current local time",
+    description: "current local time, in the format set under clock",
     summary: "current local time",
+  },
+  {
+    id: "tokensToday",
+    label: "Tokens Today",
+    unique: true,
+    description: "tokens used today in all agy conversations, from agy's local data (Node 22.13+)",
+    summary: "tokens used today, all conversations",
+  },
+  {
+    id: "tokensWeek",
+    label: "Tokens 7 Days",
+    unique: true,
+    description:
+      "tokens used in the last 7 days in all agy conversations, from agy's local data (Node 22.13+)",
+    summary: "tokens used over 7 days",
   },
   {
     id: "exec",

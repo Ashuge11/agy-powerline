@@ -7,11 +7,15 @@ const {
   bgDefault,
   fg,
   BOLD,
+  DIM,
   NORMAL,
   BLINK,
   BLINK_OFF,
   getActiveDepth,
+  gradientColors,
+  readableText,
 } = require("../colors");
+const { gradientStops } = require("../themes");
 const { pickGlyph, glyphChar } = require("../powerline");
 const {
   quotaColor,
@@ -24,7 +28,11 @@ const {
   formatContextTokens,
   shortModelName,
   formatTokenSplit,
+  formatUsage,
   formatGitSync,
+  formatGitOperation,
+  gitChangeParts,
+  gitFileParts,
   formatTasks,
   formatMode,
   clipText,
@@ -36,12 +44,17 @@ const {
   paceIndex,
   paceGlyph,
 } = require("../formatters");
-const { execWidgetOutput } = require("../exec");
+const { execWidgetOutput, restoreAfterReset } = require("../exec");
 const {
+  resolveColor,
   widgetColors,
   widgetTag,
+  OS_ICONS,
   isRaw,
   isPaced,
+  METER_STYLES,
+  meterStyle,
+  hiddenByThreshold,
   hasNoData,
   RAM_CAUTION,
   RAM_DANGER,
@@ -57,6 +70,14 @@ function fillMeter(pct, width, fillColor, emptyColor, segmentColor, pace = {}) {
   const ratio = Math.max(0, Math.min(100, Number(pct))) / 100;
   const used = Math.round(ratio * width);
   const marker = paceIndex(pace.elapsedPct, width);
+  // pips, the default, needs a Unicode font: ASCII mode keeps the cells.
+  const pips = pace.style === "pips";
+  if (pips && !pace.ascii && getActiveDepth() !== "none") {
+    return pipMeter(used, marker, width, fillColor, emptyColor) + bg(segmentColor);
+  }
+  if (METER_STYLES[pace.style] && !(pips && pace.ascii)) {
+    return glyphMeter(used, marker, width, METER_STYLES[pace.style], pace);
+  }
   // The fill is a background color; without color it is drawn with glyphs.
   const plain = getActiveDepth() === "none";
   const glyph = (filled) => (!plain ? " " : pace.ascii ? (filled ? "#" : "-") : filled ? "█" : "░");
@@ -72,6 +93,51 @@ function fillMeter(pct, width, fillColor, emptyColor, segmentColor, pace = {}) {
   }
 
   return meter + bg(segmentColor);
+}
+
+// Small dots on the pill's own color: the filled ones in the light fill color,
+// the rest in the dark track color, the same pair cells use. The pace marker
+// is a larger dot in the other color, so nothing in the meter is a line.
+function pipMeter(used, marker, width, fillColor, emptyColor) {
+  let meter = "";
+  let color = null;
+
+  for (let i = 0; i < width; i++) {
+    const filled = i < used;
+    const next = i === marker ? (filled ? emptyColor : fillColor) : filled ? fillColor : emptyColor;
+    if (next !== color) {
+      meter += fg(next);
+      color = next;
+    }
+    meter += i === marker ? METER_STYLES.pips[2] : METER_STYLES.pips[0];
+  }
+
+  return meter;
+}
+
+// A glyph style draws on the pill's own color, with no cells: filled glyphs in
+// the pill's text color (readable on the pill, gradients included), empty
+// ones in the same color dimmed. ASCII mode keeps # and -.
+function glyphMeter(used, marker, width, [full, empty, pace], { ascii, textColor }) {
+  let meter = fg(textColor);
+  let dim = false;
+
+  for (let i = 0; i < width; i++) {
+    const blank = i !== marker && i >= used;
+    if (blank !== dim) {
+      meter += blank ? DIM : NORMAL;
+      dim = blank;
+    }
+    if (i === marker) {
+      meter += (!ascii && pace) || paceGlyph(ascii);
+    } else if (ascii) {
+      meter += blank ? "-" : "#";
+    } else {
+      meter += blank ? empty : full;
+    }
+  }
+
+  return dim ? meter + NORMAL : meter;
 }
 
 function meterSegment(
@@ -115,13 +181,14 @@ function buildSegment(id, session, colors, emojis, ascii = false, widget = {}, c
   const pace = (quota) => (isPaced(widget, config) ? quota.elapsedPct : null);
   const over200k = session.exceeds200k ? " >200k" : "";
 
-  if (hasNoData(id, session)) {
+  if (hasNoData(id, session) || hiddenByThreshold(id, widget, session)) {
     return null;
   }
 
   switch (id) {
     case "clock":
       return pill(colors.meta, lbl(formatClockTime(new Date(), config.clock)));
+
     case "model":
       if (!session.model) {
         return null;
@@ -434,19 +501,64 @@ function buildSegment(id, session, colors, emojis, ascii = false, widget = {}, c
       return pill(colors.meta, lbl(name));
     }
 
+    case "os": {
+      if (!session.os) {
+        return null;
+      }
+      return pill(colors.meta, lbl(session.os, OS_ICONS[session.os]));
+    }
+
     case "git": {
       // Antigravity can send vcs.type without a branch; an empty pill says nothing.
       if (!session.git?.branch) {
         return null;
       }
       const mark = session.git.dirty ? `${ascii ? "* " : "● "}` : "";
+      const opStr = widget.operation === false ? "" : formatGitOperation(session.git.operation);
+      const opPart = opStr ? `|${opStr}` : "";
       const syncStr = formatGitSync(session.git.ahead, session.git.behind, ascii);
       const syncPart = syncStr ? ` ${syncStr}` : "";
       return pill(
         session.git.dirty ? colors.gitDirty : colors.git,
-        lbl(`${mark}${session.git.branch}${syncPart}`)
+        lbl(`${mark}${session.git.branch}${opPart}${syncPart}`)
       );
     }
+
+    case "gitChanges": {
+      const parts = gitChangeParts(session.gitDetails?.changes, ascii);
+      if (!parts.length) {
+        return null;
+      }
+      return pill(colors.git, lbl(parts.map((part) => part.text).join(" ")));
+    }
+
+    case "gitFiles": {
+      const files = session.gitDetails?.files;
+      const parts = gitFileParts(files, ascii);
+      if (!parts.length) {
+        return null;
+      }
+      const color = files.conflicts > 0 ? colors.gitDirty : colors.git;
+      return pill(color, lbl(parts.map((part) => part.text).join(" ")));
+    }
+
+    case "gitSha":
+      if (!session.gitDetails?.sha) {
+        return null;
+      }
+      return pill(colors.git, lbl(session.gitDetails.sha));
+
+    case "gitStash":
+      if (!(session.gitDetails?.stash > 0)) {
+        return null;
+      }
+      return pill(colors.git, lbl(String(session.gitDetails.stash)));
+
+    case "gitWorktree":
+      if (!session.gitDetails?.worktree) {
+        return null;
+      }
+      return pill(colors.git, lbl(session.gitDetails.worktree));
 
     case "plan":
       if (!session.plan) {
@@ -550,6 +662,32 @@ function buildSegment(id, session, colors, emojis, ascii = false, widget = {}, c
         )
       );
 
+    case "tokensToday":
+    case "tokensWeek": {
+      const usage = formatUsage(
+        session.usage?.[id === "tokensToday" ? "today" : "week"],
+        widget,
+        ascii
+      );
+      if (!usage) {
+        return null;
+      }
+      if (usage.pct === null) {
+        return pill(colors.meta, lbl(usage.text));
+      }
+      // A budget alerts like the context widgets: caution, then danger.
+      const thresh = resolveContextThresholds(widget, config);
+      const level =
+        usage.pct >= thresh.crit ? "crit" : usage.pct >= thresh.warn ? "warn" : "normal";
+      const color = contextColor(usage.pct, colors.meta, false, {
+        crit: thresh.crit,
+        warn: thresh.warn,
+        critColor: colors.warn,
+        warnColor: colors.caution,
+      });
+      return pill(color, lbl(usage.text), !ascii && shouldBlink(level, thresh.blink));
+    }
+
     case "customText": {
       if (!widget?.text) {
         return null;
@@ -576,11 +714,57 @@ function buildSegment(id, session, colors, emojis, ascii = false, widget = {}, c
   }
 }
 
+// Pill text on a gradient color that the theme's text doesn't read on.
+const READABLE_TEXT = [[22, 22, 28], WHITE, [0, 0, 0]];
+
 function buildRows(session, config, colors) {
   const rows = [];
   let groups = [];
   let current = [];
-  const splitEveryWidget = !config.powerline.enabled;
+  // The widgets shown in the current row, so a gradient can be spread over
+  // exactly those once the row is complete.
+  let placed = [];
+  const gradient = gradientStops(config.gradient);
+
+  function styledSegment(widget, ownColors) {
+    const segment = buildSegment(
+      widget.id,
+      session,
+      ownColors,
+      config.emojis,
+      config.ascii === true,
+      widget,
+      config
+    );
+    if (segment) {
+      segment.textColor = ownColors.text;
+      segment.bold = widget.bold !== false;
+      if (segment.meter) {
+        segment.style = meterStyle(widget, config, "pills");
+      }
+    }
+    return segment;
+  }
+
+  // Each widget takes its step of the gradient in place of its identity
+  // color; alert colors and a widget's own color stay as they are.
+  function applyGradient() {
+    const shades = gradientColors(gradient, placed.length);
+    placed.forEach(({ widget, group, index }, i) => {
+      if (resolveColor(widget.color, colors)) {
+        return;
+      }
+      const ownColors = widgetColors({ ...widget, color: shades[i] }, colors);
+      const segment = styledSegment(widget, ownColors);
+      if (!segment) {
+        return;
+      }
+      if (!resolveColor(widget.textColor, colors)) {
+        segment.textColor = readableText(segment.color, ownColors.text, READABLE_TEXT);
+      }
+      group[index] = segment;
+    });
+  }
 
   function flushGroup() {
     if (current.length) {
@@ -591,6 +775,11 @@ function buildRows(session, config, colors) {
 
   function flushRow() {
     flushGroup();
+
+    if (gradient && placed.length) {
+      applyGradient();
+    }
+    placed = [];
 
     if (groups.length) {
       rows.push(groups);
@@ -609,29 +798,14 @@ function buildRows(session, config, colors) {
       continue;
     }
 
-    const ownColors = widgetColors(widget, colors);
-    const segment = buildSegment(
-      widget.id,
-      session,
-      ownColors,
-      config.emojis,
-      config.ascii === true,
-      widget,
-      config
-    );
+    const segment = styledSegment(widget, widgetColors(widget, colors));
 
     if (!segment) {
       continue;
     }
 
-    segment.textColor = ownColors.text;
-    segment.bold = widget.bold !== false;
-
-    if (splitEveryWidget) {
-      groups.push([segment]);
-    } else {
-      current.push(segment);
-    }
+    placed.push({ widget, group: current, index: current.length });
+    current.push(segment);
   }
 
   flushRow();
@@ -652,20 +826,36 @@ function rightCap(color, terminal, glyph) {
   return glyph ? fg(color) + capBackground(terminal) + glyph : "";
 }
 
+// Compared as the terminal will draw them: at 256 colors two different colors
+// can land on the same code, and without color everything is the same.
 function sameColor(a, b) {
-  return String(a) === String(b);
+  return bg(a) === bg(b);
+}
+
+// Each solid Powerline glyph (U+E0B0 to U+E0BE, even code points) has a thin
+// outline twin at the next code point. The round twins are drawn shorter than
+// the cell in many Nerd Fonts, so round joins use a box-drawing line, which
+// spans the full height.
+function thinGlyph(glyph) {
+  const code = glyph.codePointAt(0);
+  if (glyph.length !== 1 || code < 0xe0b0 || code > 0xe0be || code % 2 !== 0) {
+    return glyph;
+  }
+  return code === 0xe0b4 || code === 0xe0b6 ? "│" : String.fromCodePoint(code + 1);
 }
 
 // A separator between two widgets of the same color would vanish, so it is
-// drawn in the text color instead. Inverted separators (meant for
+// drawn as its thin outline in the text color instead, the way Powerline
+// divides one color. ASCII joins are characters, not shapes, so they take the
+// text color too, which reads on any pill. Inverted separators (meant for
 // left-pointing glyphs) take the next widget's color on the previous one's.
-function joinSegments(previous, next, glyph, invert, textColor) {
+function joinSegments(previous, next, glyph, invert, textColor, ascii = false) {
   if (!glyph) {
     return "";
   }
 
-  if (sameColor(previous.color, next.color)) {
-    return fg(next.textColor || textColor) + bg(next.color) + glyph;
+  if (ascii || sameColor(previous.color, next.color)) {
+    return fg(next.textColor || textColor) + bg(next.color) + thinGlyph(glyph);
   }
 
   return invert
@@ -677,7 +867,9 @@ function segmentContent(text, color, textColor, blink = false, bold = true) {
   const blinkSeq = blink ? BLINK : "";
   const blinkOff = blink ? BLINK_OFF : "";
   // NORMAL clears bold left over from a previous widget.
-  return bg(color) + fg(textColor) + blinkSeq + (bold ? BOLD : NORMAL) + text + blinkOff;
+  const style = bg(color) + fg(textColor) + blinkSeq + (bold ? BOLD : NORMAL);
+  // Only exec output with "colors": true still holds escapes here.
+  return style + (text.includes("\x1b") ? restoreAfterReset(text, style) : text) + blinkOff;
 }
 
 function renderMeterSegment(segment, colors, ascii = false) {
@@ -688,6 +880,8 @@ function renderMeterSegment(segment, colors, ascii = false) {
   const meter = fillMeter(displayPct, 12, segment.fill, segment.empty, segment.color, {
     elapsedPct: segment.elapsedPct,
     ascii,
+    style: segment.style,
+    textColor,
   });
   const bold = segment.bold !== false;
 
@@ -700,13 +894,19 @@ function renderMeterSegment(segment, colors, ascii = false) {
 
 // Caps cycle per pill and separators per join, counted across the whole
 // statusline, so lists with several glyphs alternate from left to right.
+// Glyphs are drawn without bold, which some fonts draw wider or shifted, and
+// the pill ends on the terminal's background so the padding after it stays
+// clear even without an end cap. Without color, solid caps would be blobs of
+// text color, so only ASCII brackets are kept.
 function renderGroup(group, colors, config, counters = { pill: 0, separator: 0 }) {
   const { powerline } = config;
   const ascii = config.ascii === true;
   const terminal = colors.terminal;
   const pillIndex = counters.pill++;
-  const startCap = glyphChar(pickGlyph(powerline.startCaps, pillIndex), "startCap", ascii);
-  const endCap = glyphChar(pickGlyph(powerline.endCaps, pillIndex), "endCap", ascii);
+  const caps = ascii || getActiveDepth() !== "none";
+  const cap = (list, slot) => (caps ? glyphChar(pickGlyph(list, pillIndex), slot, ascii) : "");
+  const startCap = cap(powerline.startCaps, "startCap");
+  const endCap = cap(powerline.endCaps, "endCap");
 
   let out = leftCap(group[0].color, terminal, startCap);
 
@@ -727,13 +927,22 @@ function renderGroup(group, colors, config, counters = { pill: 0, separator: 0 }
       const slot = counters.separator++;
       const glyph = glyphChar(pickGlyph(powerline.separators, slot), "separator", ascii);
       const invert = powerline.separatorInvert[slot % (powerline.separators.length || 1)];
-      out += joinSegments(segment, group[i + 1], glyph, invert === true, colors.text);
+      out +=
+        NORMAL + joinSegments(segment, group[i + 1], glyph, invert === true, colors.text, ascii);
     }
   }
 
-  out += rightCap(group[group.length - 1].color, terminal, endCap);
+  const last = group[group.length - 1].color;
+  return out + NORMAL + (endCap ? rightCap(last, terminal, endCap) : capBackground(terminal));
+}
 
-  return out;
+// With joins off every widget is a pill of its own, one space from the next;
+// the Flex Separator still decides where the row opens up.
+function renderPills(group, colors, config, counters) {
+  if (config.powerline.enabled) {
+    return renderGroup(group, colors, config, counters);
+  }
+  return group.map((segment) => renderGroup([segment], colors, config, counters)).join(" ");
 }
 
 function joinFlex(parts, terminalWidth) {
@@ -771,7 +980,7 @@ function renderPillRows(rows, session, colors, config) {
   return rows
     .map((row) =>
       joinFlex(
-        row.map((group) => renderGroup(group, colors, config, counters)),
+        row.map((group) => renderPills(group, colors, config, counters)),
         session.terminalWidth
       )
     )

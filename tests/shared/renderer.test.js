@@ -1,5 +1,6 @@
 "use strict";
 
+const { LAYOUT_ORDER } = require("../../src/lib/config");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -265,7 +266,7 @@ async function run() {
     !pillsMeter(data100, false).includes("[") && !pillsMeter(data100, false).includes("]")
   );
 
-  // Row gaps: a blank line between Pills rows, only when asked for.
+  // Row gaps: a blank line between rows, in every layout, only when asked for.
   const twoRows = [{ id: "model" }, { id: "lineBreak" }, { id: "fiveHourPct" }];
   const rowLines = (config) =>
     stripAnsi(
@@ -278,9 +279,20 @@ async function run() {
     gapped.length === 3 && gapped[1].trim() === "" && /Gemini/.test(gapped[0]),
     JSON.stringify(gapped)
   );
+  const textGaps = LAYOUT_ORDER.filter((layout) => layout !== "pills").map((layout) => [
+    rowLines({ layout }),
+    rowLines({ rowGap: true, layout }),
+  ]);
   record(
-    "rowGap leaves the Lines layout alone",
-    rowLines({ rowGap: true, layout: "lines" }).length === 2
+    "rowGap puts a blank line between rows in the text layouts too",
+    textGaps.every(
+      ([plain, gapped]) =>
+        plain.length === 2 &&
+        gapped.length === 3 &&
+        gapped[1].trim() === "" &&
+        /Gemini/.test(gapped[0])
+    ),
+    JSON.stringify(textGaps)
   );
   record("rowGap survives a config round trip", mergeConfig({ rowGap: true }).rowGap === true);
 
@@ -353,12 +365,17 @@ async function run() {
     powerline: { enabled: false },
     emojis: true,
     ascii: false,
+    // Flex Separators stretch the row to the full width, so the measured
+    // width must come out exactly at the terminal's.
     widgets: [
       { id: "model" },
+      { id: "separator" },
       { id: "fiveHourBar" },
       { id: "fiveHourReset" },
+      { id: "separator" },
       { id: "weeklyBar" },
       { id: "weeklyReset" },
+      { id: "separator" },
       { id: "ram" },
     ],
   };
@@ -425,7 +442,7 @@ async function run() {
     renderStatusline(realPayload, { ...defaultConfig(), layout, widgets: [{ id }] });
   record(
     "context tokens agree with the percentage beside them (cached tokens included)",
-    ["pills", "lines"].every(
+    LAYOUT_ORDER.every(
       (layout) =>
         /123\.1K\/1\.0M \(11\.7%\)/.test(contextOnly(layout)) &&
         /123\.1K\/1\.0M/.test(contextOnly(layout, "contextTokens"))
@@ -501,6 +518,55 @@ async function run() {
     "runExecWidget caches output across calls within interval (zero-spawn)",
     firstVal.length > 0 && firstVal === secondVal
   );
+
+  const execDir = fs.mkdtempSync(path.join(os.tmpdir(), "agy-exec-interval-"));
+  const previousHome = process.env.AGY_POWERLINE_HOME;
+  const originalNow = Date.now;
+  let now = originalNow();
+  try {
+    process.env.AGY_POWERLINE_HOME = execDir;
+    fs.writeFileSync(path.join(execDir, "statusline.config.json"), "{}");
+    clearExecCache();
+    Date.now = () => now;
+    const valueFile = path.join(execDir, "value.txt");
+    const widget = {
+      id: "exec",
+      cmd: "node -e \"console.log(require('fs').readFileSync('value.txt', 'utf8'))\"",
+      interval: 3600,
+    };
+    fs.writeFileSync(valueFile, "first");
+    const initial = runExecWidget(widget, { cwd: execDir });
+    fs.writeFileSync(valueFile, "second");
+    now += 5000;
+    record(
+      "runExecWidget reads a one-hour interval in seconds",
+      initial === "first" && runExecWidget(widget, { cwd: execDir }) === "first"
+    );
+    now += 3594999;
+    record(
+      "runExecWidget keeps cached output until the full interval has passed",
+      runExecWidget(widget, { cwd: execDir }) === "first"
+    );
+    now += 1;
+    record(
+      "runExecWidget refreshes output when the interval expires",
+      runExecWidget(widget, { cwd: execDir }) === "second"
+    );
+    widget.interval = 0;
+    fs.writeFileSync(valueFile, "third");
+    const uncached = runExecWidget(widget, { cwd: execDir });
+    fs.writeFileSync(valueFile, "fourth");
+    record(
+      "runExecWidget does not cache output with interval zero",
+      uncached === "third" && runExecWidget(widget, { cwd: execDir }) === "fourth"
+    );
+  } finally {
+    Date.now = originalNow;
+    clearExecCache();
+    if (previousHome === undefined) delete process.env.AGY_POWERLINE_HOME;
+    else process.env.AGY_POWERLINE_HOME = previousHome;
+    fs.rmSync(execDir, { recursive: true, force: true });
+  }
 
   // Exec timeout handling: long running command does not hang or throw
   const timeoutWidget = {

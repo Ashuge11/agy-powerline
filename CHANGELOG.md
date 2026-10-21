@@ -7,54 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<<<<<<< HEAD
+### Added
+
+- Per-widget quota and context visibility thresholds in the bar and `configure` (#99)
+- `clock` widget shows the current local time, in the 12/24-hour format set under `clock` (#46)
+- Optional `os` widget shows Windows, macOS, Linux or WSL (#63)
+
+## [1.4.0] - 2026-10-20
 
 ### Added
 
-## [Unreleased]
+- `rings` meter style (`●●●○○○`) and `ramp` meter style (`███░░░`, each filled cell shaded from the theme's ok color through caution to danger); pick them with `"meterStyle"` or per widget in `configure`
+- `classic` layout: plain colored text with `|` dividers and block meters (`███░│░░░░░`); `npx agy-powerline layout classic` or `l` in `configure`
+- CodeQL static code analysis workflow (`.github/workflows/codeql.yml`)
+- README badges for the live web configurator, GitHub stars, CodeQL, and OS platform logos
+- Star History chart in READMEs
+- `git` preset (project, branch, worktree, stash; changed files and lines, commit) and `tokens` preset (session tokens, cache hit, tokens today and over 7 days)
+- Each GitHub release has plugin archives attached (`agy-powerline-plugin-<version>.zip` and `.tar.gz`), for `agy plugin install` where npm or cloning from GitHub is blocked; `docs/install.md` → Install without npm (#123)
+
+### Changed
+
+- Space between rows (`"rowGap"`, `v` in `configure`) works in every layout, not only Pills
+- Pills draw meters as small dots (`pips`), with a larger dot as the pace marker, instead of solid colored blocks; `"meterStyle": "cells"` keeps the blocks, and ASCII mode keeps them too
+- The setup and customize skills run commands from the plugin's own copy when npx can't reach npm (#123)
+- `configure` → Themes shows a theme's palette in two columns with space between the pills
+- Presets are named after what they show: Default, Compact, Agent activity, Git focus, Token usage, Quota watch and Everything
+- The `workspace` preset is now `agent` (agent state, subagents, title, mode and sandbox; model, context %, artifacts, tightest quota), and `limits` is now `quotas`, in three rows: plan and model, then the 5h and 7d quotas side by side, then third-party and Argon
+
+### Removed
+
+- The preset names `workspace` and `limits`: use `agent` and `quotas`. `preset workspace`, `preset limits` and `init --preset` with either name stop with an error that lists the presets; saved configs keep working
+
+### Fixed
+
+- In the Pills layout, two neighboring widgets of the same color (a quota meter and its reset) are divided by a thin line instead of a solid black arrow or half-circle
+- Pill caps and separators are no longer drawn in bold, which some fonts draw wider or shifted
+- The flat style (no end caps) no longer paints the space after a pill in that pill's color
+- With joins off, a row's pills sit one space apart and only Flex Separators spread them, instead of every gap stretching
+- Without color, pills no longer show solid caps and joins as blocks of text color
+- ASCII joins (`>`) are drawn in the text color, readable on any pill
+- In 256-color mode, colors map to the nearest terminal color (near-black text was navy blue), and widgets whose colors land on the same code get a visible divider
+
+### Security
+
+- Each GitHub release has the npm tarball attached with its signed build attestation; check it with `gh attestation verify` (see `SECURITY.md`) (#117)
+- The plugin archives on each release have the same signed build attestation as the tarball (#123)
+
+## [1.3.0] - 2026-10-18
 
 ### Added
 
 - `dark-macchiato` theme: Catppuccin Macchiato palette (#33, thanks @yatharth2soni)
-- The README in French (`README.fr.md`) (#51)
-- `clock` widget: displays the current time in both Pills and Lines layouts, with configurable 12/24-hour formatting (#46)
+- Gradients: `"gradient": "sunset"` (or `npx agy-powerline gradient sunset`) colors each row with one sweep from left to right, from eight presets or your own hex colors, with text kept readable and caution and danger colors kept as they are (#80)
+- `exec` widgets can read the session JSON on stdin with `"payload": true` (your email and session IDs are removed first) and keep the colors their command prints with `"colors": true`; `docs/configuration.md` has recipes (#81)
+- Git detail widgets, each opt-in: `gitChanges` (lines added and removed), `gitFiles` (staged, modified, untracked and conflicted files), `gitSha` (commit ID), `gitStash` (stash count) and `gitWorktree` (linked worktree name); with `gitFiles` on the bar, the `git` widget's dirty marker also counts uncommitted files (#82)
+- `npx agy-powerline export [file]` and `npx agy-powerline import <file>` save and load your config: import shows what changes and previews the bar first, `--merge` changes only the settings in the file, new shell commands need their own confirmation or `--allow-exec`, and the previous config is kept as `statusline.config.json.bak` (#83)
+- The README in French (`README.fr.md`) (#51, thanks @dharamdan01)
+- Recipe: today's agy tokens from ccusage in the bar, with an `exec` widget (`docs/configuration.md` → Recipes) (#90)
+- agy plugin: `agy plugin install https://github.com/wassim-azi/agy-powerline` adds an `agy-powerline-setup` skill that installs the bar from inside agy (`init`, then `doctor`) and an `agy-powerline-customize` skill that changes its theme, preset, layout, caps or gradient on request (#89)
+- A first `init` in a terminal asks for a preset, a layout and a theme, with a preview of each; `--preset`, `--layout` and `--theme` answer them for scripted installs and change only those settings in an existing config (#91)
+- `tokensToday` and `tokensWeek` widgets: tokens used today and over the last 7 days in all your agy conversations, read from agy's own local data (no network), with `"split"` and an optional `"budget"` that alerts like the context widgets; they need Node 22.13 or newer (#94)
+- Meter styles: `"meterStyle": "blocks"` (or `"meter"` on one meter widget, also in `configure`) draws the quota and context meters as `blocks`, `shade`, `line`, `geometric`, `squares`, `braille`, `bars` or `dots` instead of each layout's own; ASCII mode keeps `#` and `-` (#93)
+- The `git` widget shows a rebase (with its step, `REBASE 2/5`), `git am`, merge, cherry-pick, revert or bisect in progress, and the branch being rebased instead of a commit ID; `"operation": false` hides it (#92)
+- Theme gallery online at https://agy-powerline.com/: every theme rendered by the real statusline code on dark and light terminals, with a color-blindness simulation (#110)
+- Web configurator on GitHub Pages (https://agy-powerline.com/configure/): build your bar in the browser with live previews, themes, layouts, widget options, shareable URL links, and config export (#95)
 
 ### Changed
 
 - `init` ends with a link to the project page
+- The Pages site (https://agy-powerline.com/) shares a header, footer, design tokens, SVG favicon, dark/light/system theme toggle, terminal window frames and 404 page across the theme gallery and web configurator, with a hero section and one-click theme links on the gallery (#114)
 
 ### Fixed
 
+- Exec widget intervals are always read in seconds; values of 1000 or more were read as milliseconds (#68, thanks @hiyouwhatsapp).
 - The statusline exits quietly when Antigravity closes its output pipe (#45, thanks @dannyward630)
 - `init` and `uninstall` keep a `settings.json` symlinked by a dotfile manager (stow, chezmoi, yadm) as a link and write the change into the file it points to; they used to replace the link with a plain file, so the real file never got the change. The same goes for a symlinked `statusline.config.json`
 - A second `init` no longer loses your original `settings.json`: the first backup is now kept as `settings.json.agy-powerline.original.bak` and never replaced, next to the latest one
 - `configure` describes the `git` widget fully: its list and details panel now mention the ahead/behind counts it shows, not only the branch and uncommitted changes
-
-## [1.2.0] - 2026-10-16
-
-- `dark-macchiato` theme: Catppuccin Macchiato palette (#33, thanks @yatharth2soni)
-- The README in French (`README.fr.md`) (#51)
-
-### Changed
-
-- `init` ends with a link to the project page
-
-### Fixed
-
-- The statusline exits quietly when Antigravity closes its output pipe (#45, thanks @dannyward630)
-- `init` and `uninstall` keep a `settings.json` symlinked by a dotfile manager (stow, chezmoi, yadm) as a link and write the change into the file it points to; they used to replace the link with a plain file, so the real file never got the change. The same goes for a symlinked `statusline.config.json`
-- A second `init` no longer loses your original `settings.json`: the first backup is now kept as `settings.json.agy-powerline.original.bak` and never replaced, next to the latest one
-- `configure` describes the `git` widget fully: its list and details panel now mention the ahead/behind counts it shows, not only the branch and uncommitted changes
-
-## [1.2.0] - 2026-10-16
-
-=======
-
-> > > > > > > 47e5a42 (fix(widget): address clock review feedback)
-
-### Added
-
-- `clock` widget: displays the current time in both Pills and Lines layouts, with configurable 12/24-hour formatting (#46)
 
 ## [1.2.0] - 2026-10-16
 

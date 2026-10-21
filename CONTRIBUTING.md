@@ -10,6 +10,10 @@ Using an AI coding agent (Antigravity CLI, Claude Code, Codex, Cursor, Copilot, 
 
 ## 🛠️ Quickstart & Development Setup
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/wassim-azi/agy-powerline?quickstart=1)
+
+Prefer not to install Node locally? Use the badge above, or clone the repository in VS Code and choose **Dev Containers: Reopen in Container**. The container installs dependencies when it is created; run the checks below once it is ready.
+
 1. **Clone the repository:**
 
    ```bash
@@ -94,9 +98,9 @@ The codebase is organized into small, focused modules without heavy frameworks o
 agy-powerline/
 ├── src/
 │   ├── index.js              # CLI entry point (Node's built-in util.parseArgs)
-│   ├── cli/                  # One file per command (init, configure, theme, layout, preset, caps,
-│   │                         # doctor, report, uninstall), bundle.js (the one-file installed
-│   │                         # runtime), tui-style.js and config-guard.js
+│   ├── cli/                  # One file per command (init, configure, theme, gradient, layout,
+│   │                         # preset, caps, export, import, doctor, report, uninstall), bundle.js
+│   │                         # (the one-file installed runtime), tui-style.js and config-guard.js
 │   ├── lib/
 │   │   ├── shared.js         # renderStatusline(), the rendering entry point
 │   │   ├── session.js        # Extracts & normalizes fields from Antigravity's JSON payload
@@ -132,8 +136,9 @@ agy-powerline/
 │   ├── shared/               # Cross-platform rendering & configuration tests
 │   └── platform/             # Windows / macOS / Linux launcher tests
 └── scripts/
-    ├── gallery/              # npm run gallery: HTML preview of every theme
-    └── hooks/                # Git hooks: pre-commit (Prettier, ESLint), commit-msg
+    ├── gallery/              # npm run gallery / screenshots: previews of every theme
+    ├── hooks/                # Git hooks: pre-commit (Prettier, ESLint), commit-msg
+    └── release/              # Plugin archives attached to each GitHub release
 ```
 
 ---
@@ -220,7 +225,7 @@ Run `npm test` to ensure it passes, then `npm run test:update` if the bar's outp
 
 ### 5. Document it
 
-Add the widget to the widget table in `README.md` (and the same row in every translation, `README.<lang>.md`; a description in English is fine if you don't speak the language) and to the Widgets list in `docs/configuration.md`, and add a `CHANGELOG.md` entry. The `readme` test suite fails if a README misses the widget.
+Add the widget to the widget table in `README.md` (and the same row in every translation, `README.<lang>.md`; a description in English is fine if you don't speak the language) and to the Widgets list in `docs/configuration.md`, and add a `CHANGELOG.md` entry. Add every new command, widget, theme or preset to the root `llms.txt` too. The `readme` test suite fails if a README misses the widget.
 
 ---
 
@@ -272,7 +277,8 @@ Every change must keep the bar cross-platform and fast:
 
 4. **Visual Check:**
    - `npm run gallery` writes `gallery.html` with every theme rendered on dark and light terminals, plus a color-blindness simulation. Open it in a browser.
-   - CI builds the same page for every pull request: open the run's Summary page and download the `theme-preview` artifact.
+   - `npm run screenshots` writes one SVG per theme to `screenshots/`, with every layout on the theme's terminal background.
+   - CI builds both for every pull request: open the run's Summary page and download the `theme-preview` artifact.
 
 5. **Zero Runtime Dependencies:**
    - The published package has no `dependencies` at all, and CI fails if one is added. Use Node.js built-ins (`util.parseArgs`, `readline`, `fs`, ...) instead of npm packages.
