@@ -114,7 +114,7 @@ const WIDGET_TAGS = {
   cacheCreate: { icon: "📤", name: "Cache create" },
   cacheHit: { icon: "⚡", name: "Cache hit" },
   totalTokens: { icon: "🪙", name: "Tokens" },
-  clock: { icon: "🕒", name: "Clock" },
+  clock: { icon: "🕒", name: "Clock", iconOnly: true },
   customText: { icon: "🏷️", name: "" },
 };
 

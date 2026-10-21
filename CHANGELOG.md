@@ -7,7 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+
 ### Added
+
+## [Unreleased]
+
+### Added
+
+- `dark-macchiato` theme: Catppuccin Macchiato palette (#33, thanks @yatharth2soni)
+- The README in French (`README.fr.md`) (#51)
+- `clock` widget: displays the current time in both Pills and Lines layouts, with configurable 12/24-hour formatting (#46)
+
+### Changed
+
+- `init` ends with a link to the project page
+
+### Fixed
+
+- The statusline exits quietly when Antigravity closes its output pipe (#45, thanks @dannyward630)
+- `init` and `uninstall` keep a `settings.json` symlinked by a dotfile manager (stow, chezmoi, yadm) as a link and write the change into the file it points to; they used to replace the link with a plain file, so the real file never got the change. The same goes for a symlinked `statusline.config.json`
+- A second `init` no longer loses your original `settings.json`: the first backup is now kept as `settings.json.agy-powerline.original.bak` and never replaced, next to the latest one
+- `configure` describes the `git` widget fully: its list and details panel now mention the ahead/behind counts it shows, not only the branch and uncommitted changes
+
+## [1.2.0] - 2026-10-16
 
 - `dark-macchiato` theme: Catppuccin Macchiato palette (#33, thanks @yatharth2soni)
 - The README in French (`README.fr.md`) (#51)
@@ -25,7 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2026-10-16
 
-- `clock` widget: displays the current time in both Pills and Lines layouts, with configurable 12/24-hour formatting.
+=======
+
+> > > > > > > 47e5a42 (fix(widget): address clock review feedback)
+
+### Added
+
+- `clock` widget: displays the current time in both Pills and Lines layouts, with configurable 12/24-hour formatting (#46)
+
+## [1.2.0] - 2026-10-16
 
 ### Added
 

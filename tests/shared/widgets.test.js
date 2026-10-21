@@ -42,16 +42,19 @@ function testClock() {
   const real = fixture("antigravity-1.3.0.json");
   const clock = [{ id: "clock" }];
 
-  record("clock renders in the pills layout", /Clock: /.test(render(real, clock)));
+  record(
+    "clock renders in the pills layout",
+    /\b\d{1,2}:\d{2}(?:\s*[ap]m)?\b/i.test(render(real, clock))
+  );
 
   record(
     "clock renders in the lines layout",
-    /Clock: /.test(render(real, clock, { layout: "lines" }))
+    /\b\d{1,2}:\d{2}(?:\s*[ap]m)?\b/i.test(render(real, clock, { layout: "lines" }))
   );
 
   record(
     "clock supports 12-hour formatting",
-    /Clock: \d{1,2}:\d{2}\s*[AP]M/i.test(
+    /\b\d{1,2}:\d{2}\s*[AP]M/i.test(
       render(real, clock, {
         clock: { ...defaultConfig().clock, hour12: true },
       })
