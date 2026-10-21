@@ -143,31 +143,6 @@ function testTitle() {
   record("title hides until the conversation has one", !/💬/.test(render(untitled, title)));
 }
 
-function testClock() {
-  const real = fixture("antigravity-1.3.0.json");
-  const clock = [{ id: "clock" }];
-  const time12 = /\b\d{1,2}:\d{2}[ap]m\b/;
-  const time24 = /\b\d{2}:\d{2}\b(?![ap]m)/;
-
-  for (const layout of LAYOUT_ORDER) {
-    const shown = render(real, clock, { layout });
-    record(
-      `${layout} clock shows the time after its icon only`,
-      /🕒 /.test(shown) && time12.test(shown) && !/Clock:/.test(shown),
-      shown
-    );
-    const ascii = render(real, clock, { layout, ascii: true });
-    record(
-      `${layout} clock keeps its label in ASCII mode`,
-      /Clock: /.test(ascii) && !/[^\x00-\x7f]/.test(ascii),
-      ascii
-    );
-    const h24 = render(real, clock, { layout, clock: { ...defaultConfig().clock, hour12: false } });
-    record(`${layout} clock follows the 24-hour setting`, time24.test(h24), h24);
-  }
-  record("clock stays opt-in", !defaultConfig().widgets.some((widget) => widget.id === "clock"));
-}
-
 function testMode() {
   const real = fixture("antigravity-1.3.3-modes.json");
   const mode = [{ id: "mode" }];
@@ -192,6 +167,31 @@ function testMode() {
   const neither = { ...vimOnly, cycle_mode: "default" };
   delete neither.vim;
   record("mode hides in the default mode with Vim editing off", !/🧭/.test(render(neither, mode)));
+}
+
+function testClock() {
+  const real = fixture("antigravity-1.3.0.json");
+  const clock = [{ id: "clock" }];
+  const time12 = /\b\d{1,2}:\d{2}[ap]m\b/;
+  const time24 = /\b\d{2}:\d{2}\b(?![ap]m)/;
+
+  for (const layout of LAYOUT_ORDER) {
+    const shown = render(real, clock, { layout });
+    record(
+      `${layout} clock shows the time after its icon only`,
+      /🕒 /.test(shown) && time12.test(shown) && !/Clock:/.test(shown),
+      shown
+    );
+    const ascii = render(real, clock, { layout, ascii: true });
+    record(
+      `${layout} clock keeps its label in ASCII mode`,
+      /Clock: /.test(ascii) && !/[^\x00-\x7f]/.test(ascii),
+      ascii
+    );
+    const h24 = render(real, clock, { layout, clock: { ...defaultConfig().clock, hour12: false } });
+    record(`${layout} clock follows the 24-hour setting`, time24.test(h24), h24);
+  }
+  record("clock stays opt-in", !defaultConfig().widgets.some((widget) => widget.id === "clock"));
 }
 
 function testTasks() {
