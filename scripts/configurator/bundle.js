@@ -247,6 +247,7 @@ const __shimOs = {
   freemem: () => 8589934592,
   totalmem: () => 17179869184,
   userInfo: () => ({ username: "you" }),
+  hostname: () => "devbox",
   tmpdir: () => "/tmp",
   platform: () => process.platform,
   release: () => "1.0.0",

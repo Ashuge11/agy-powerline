@@ -157,6 +157,7 @@ Nerd Font のないターミナルでは、ASCII モードをオンにしてく�
 | `tokensToday`、`tokensWeek`                                   | 今日と過去 7 日間のトークン使用量（すべての会話、Node 22.13 以降）                                       |
 | `ram`                                                         | マシンのメモリ使用量                                                                                     |
 | `os`                                                          | System agy runs on: Windows, macOS, Linux or WSL                                                         |
+| `host`                                                        | Current user and short hostname from the OS (`alex@devbox`)                                              |
 | `customText`、`exec`                                          | 任意のテキスト、または [シェルコマンド](docs/configuration.md#shell-command-widget-exec)の出力           |
 
 表示する内容のないウィジェットは自動的に隠れます。ウィジェットごとに色を変えたり、ラベルを外したり、独自の警告しきい値を設定したりできます。詳しくは [Configuration](docs/configuration.md) を参照してください。
