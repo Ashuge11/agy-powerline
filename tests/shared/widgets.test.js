@@ -75,9 +75,10 @@ function testOsWidget() {
     ["darwin", false, "macOS", "🍎"],
     ["linux", false, "Linux", "🐧"],
     ["linux", true, "WSL", "🐧"],
-    ["freebsd", false, "freebsd", "🖥️"],
+    ["freebsd", false, "FreeBSD", "💻"],
+    ["haiku", false, "haiku", "💻"],
   ];
-  const icons = ["🪟", "🍎", "🐧", "🖥️"];
+  const icons = ["🪟", "🍎", "🐧", "💻"];
 
   for (const [platform, wsl, name, icon] of platforms) {
     withPlatform(platform, wsl, () => {
@@ -451,7 +452,7 @@ function testWidgetThresholds() {
       field?.number === 50 &&
         field.show(undefined) === "always" &&
         field.show(101) === "always" &&
-        field.help === "Hides the widget until less than this share is left."
+        field.help === "Shows the widget only when this share or less is left."
     );
   }
   for (const id of contextWidgets) {
@@ -461,7 +462,7 @@ function testWidgetThresholds() {
       field?.number === 50 &&
         field.show(undefined) === "always" &&
         field.show(null) === "always" &&
-        field.help === "Hides the widget until more than this share is used."
+        field.help === "Shows the widget only when this share or more is used."
     );
   }
   record(

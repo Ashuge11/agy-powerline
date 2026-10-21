@@ -23,17 +23,23 @@ const QUOTA_BUCKETS = {
 // No quota window lasts a year: a reset further out is a broken value.
 const MAX_RESET_SECONDS = 366 * 86400;
 
+// Node's platform ids, spelled the way people write them.
+const OS_NAMES = {
+  win32: "Windows",
+  darwin: "macOS",
+  linux: "Linux",
+  android: "Android",
+  freebsd: "FreeBSD",
+  openbsd: "OpenBSD",
+  sunos: "SunOS",
+  aix: "AIX",
+};
+
 function currentOsName() {
-  if (process.platform === "win32") {
-    return "Windows";
+  if (process.platform === "linux" && isWsl()) {
+    return "WSL";
   }
-  if (process.platform === "darwin") {
-    return "macOS";
-  }
-  if (process.platform === "linux") {
-    return isWsl() ? "WSL" : "Linux";
-  }
-  return process.platform;
+  return OS_NAMES[process.platform] || process.platform;
 }
 
 // Payload numbers can be strings, negative or absurd. The bar must never show

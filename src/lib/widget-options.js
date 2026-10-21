@@ -161,7 +161,7 @@ function editFields(widget, config = {}, options = {}) {
       label: "Show below",
       number: 50,
       show: (value) => (isVisibilityThreshold(value) ? `${value}%` : "always"),
-      help: "Hides the widget until less than this share is left.",
+      help: "Shows the widget only when this share or less is left.",
     });
   }
   if (context) {
@@ -170,7 +170,7 @@ function editFields(widget, config = {}, options = {}) {
       label: "Show above",
       number: 50,
       show: (value) => (isVisibilityThreshold(value) ? `${value}%` : "always"),
-      help: "Hides the widget until more than this share is used.",
+      help: "Shows the widget only when this share or more is used.",
     });
   }
   if (METER_WIDGETS.has(widget.id)) {

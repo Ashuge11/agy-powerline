@@ -154,9 +154,9 @@ function testWidgetEditor() {
   record(
     "configure shows the quota and context visibility options and help",
     /Show below.? +always/.test(showBelow) &&
-      /less than this share is left/.test(showBelow) &&
+      /this share or less is left/.test(showBelow) &&
       /Show above.? +always/.test(context) &&
-      /more than this share is used/.test(context)
+      /this share or more is used/.test(context)
   );
   record(
     "the editor explains the selected option and draws the widget with it",
